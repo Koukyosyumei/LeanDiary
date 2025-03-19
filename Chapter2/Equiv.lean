@@ -101,9 +101,9 @@ theorem skip_right:
       . exact h
       . apply ceval.E_Skip
 
-theorem if_true_simple:
-    ∀ (c₁ c₂ : com), cequiv (com.if_ true c₁ c₂) c₁ := by
-    intro c₁ c₂
+theorem if_true:
+    ∀ (b: Bool), ∀ (c₁ c₂ : com), b = true → cequiv (com.if_ b c₁ c₂) c₁ := by
+    intro b c₁ c₂ htrue
     rw[cequiv]
     intro st st'
     constructor
@@ -111,11 +111,12 @@ theorem if_true_simple:
       cases h
       case E_IfTrue _ hc =>
         exact hc
-      case E_IfFalse _ hc =>
+      case E_IfFalse hfalse hc =>
+        rw[htrue] at hfalse
         contradiction
     . intro h
       apply ceval.E_IfTrue
-      . rfl
+      . rw[htrue]
       . exact h
 
 end Equiv
