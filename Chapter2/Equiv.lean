@@ -39,6 +39,8 @@ inductive ceval : com -> state -> state -> Prop
 | E_WhileTrue : ∀ (st st' st'' : state) (b : Bool) (c : com),
     b = true → ceval c st st' → ceval (com.while b c) st' st'' → ceval (com.while b c) st st''
 
+namespace Equiv
+
 -- Executing `skip` does not change the state
 -- This directly follows from the `E_Skip` rule
 theorem skip_preserves_state (st : state) :
@@ -70,4 +72,6 @@ theorem skip_left (c : com) (st st' : state) :
   . intro h
     apply ceval.E_Seq
     . apply ceval.E_Skip
-    . exact
+    . exact h
+
+end Equiv
