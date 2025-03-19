@@ -80,4 +80,20 @@ theorem skip_left (c : com) :
     . apply ceval.E_Skip
     . exact h
 
+theorem skip_right (c : com) :
+    cequiv (com.seq c com.skip) c := by
+    rw[cequiv]
+    intro st st'
+    constructor
+    . intro h
+      cases h
+      case E_Seq st'' h_c h_skip =>
+        cases h_skip
+        case E_Skip =>
+            exact h_c
+    . intro h
+      apply ceval.E_Seq
+      . exact h
+      . apply ceval.E_Skip
+
 end Equiv
