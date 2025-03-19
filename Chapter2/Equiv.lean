@@ -168,4 +168,23 @@ theorem swap_if_branches:
         exact h
         repeat rfl
 
+theorem while_false:
+    ∀ (b : Bool), ∀ (c₁ : com), b = false → cequiv (com.while b c₁) com.skip := by
+    intros b c₁ hfalse
+    rw[cequiv]
+    intros st st'
+    constructor
+    . intro h
+      cases h
+      case E_WhileFalse _ =>
+        apply ceval.E_Skip
+      case E_WhileTrue htrue hc hw =>
+        rw[hfalse] at htrue
+        contradiction
+    . intro h
+      cases h
+      case E_Skip =>
+        apply ceval.E_WhileFalse
+        exact hfalse
+
 end Equiv
