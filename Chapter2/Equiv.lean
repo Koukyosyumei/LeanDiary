@@ -50,15 +50,16 @@ def cequiv (c₁ c₂ : com) : Prop :=
 
 -- Executing `skip` does not change the state
 -- This directly follows from the `E_Skip` rule
-theorem skip_preserves_state (st : state) :
-  ceval com.skip st st := by
+theorem skip_preserves_state:
+  ∀ (st: state), ceval com.skip st st := by
   apply ceval.E_Skip
 
 -- Proving a command equivalence
 
 -- ∀c, (skip; c) is equivalent to c
-theorem skip_left (c : com) :
-  cequiv (com.seq com.skip c) c := by
+theorem skip_left:
+  ∀ (c: com), cequiv (com.seq com.skip c) c := by
+  intro c
   -- breaking the statement into two directions
   rw [cequiv]
   intro st st'
@@ -83,8 +84,9 @@ theorem skip_left (c : com) :
     . apply ceval.E_Skip
     . exact h
 
-theorem skip_right (c : com) :
-    cequiv (com.seq c com.skip) c := by
+theorem skip_right:
+    ∀ (c: com), cequiv (com.seq c com.skip) c := by
+    intro c
     rw[cequiv]
     intro st st'
     constructor
@@ -99,8 +101,9 @@ theorem skip_right (c : com) :
       . exact h
       . apply ceval.E_Skip
 
-theorem if_true_simple (c₁ c₂ : com):
-    cequiv (com.if_ true c₁ c₂) c₁ := by
+theorem if_true_simple:
+    ∀ (c₁ c₂ : com), cequiv (com.if_ true c₁ c₂) c₁ := by
+    intro c₁ c₂
     rw[cequiv]
     intro st st'
     constructor
