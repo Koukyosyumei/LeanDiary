@@ -217,4 +217,17 @@ theorem seq_assoc:
             .exact h1
             .exact h2
 
+lemma h_eq (st: state) (x : String) : set st x (get st x) = st := by
+    funext y
+    unfold _root_.set _root_.get
+    by_cases h: y = x
+    {
+        rw[if_pos h]
+        rw[h]
+    }
+    {
+        rw[if_neg h]
+    }
+
+
 end Equiv
