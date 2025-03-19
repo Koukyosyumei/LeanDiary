@@ -54,9 +54,11 @@ theorem skip_preserves_state (st : state) :
 -- Proving a command equivalence
 
 -- ∀c, (skip; c) is equivalent to c
-theorem skip_left (c : com) (st st' : state) :
-  ceval (com.seq com.skip c) st st' ↔ ceval c st st' := by
+theorem skip_left (c : com) :
+  cequiv (com.seq com.skip c) c := by
   -- breaking the statement into two directions
+  rw [cequiv]
+  intro st st'
   constructor
   -- forward (→)
   . intro h
