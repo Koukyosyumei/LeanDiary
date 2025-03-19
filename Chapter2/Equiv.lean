@@ -20,6 +20,9 @@ inductive com: Type
 | if_ (b : Bool) (c1 c2 : com) : com -- if b then c1 else c2
 | while (b : Bool) (c : com) : com   -- while b do c
 
+-- inductive definitions in Lean come with an important implicit principle:
+-- ** the only ways to construct proofs of the inductive relation are through its constructors.
+
 -- State transition
 inductive ceval : com -> state -> state -> Prop
 | E_Skip : ∀ (st : state),
