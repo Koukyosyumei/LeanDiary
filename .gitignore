@@ -3,6 +3,7 @@
 .#*
 *.lock
 .lake
+lake-manifest.json
 /build
 /src/lakefile.toml
 /tests/lakefile.toml
