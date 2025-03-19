@@ -119,4 +119,22 @@ theorem if_true:
       . rw[htrue]
       . exact h
 
+theorem if_false:
+    ∀ (b: Bool), ∀ (c₁ c₂ : com), b = false → cequiv (com.if_ b c₁ c₂) c₂ := by
+    intro b c₁ c₂ hfalse
+    rw[cequiv]
+    intro st st'
+    constructor
+    . intro h
+      cases h
+      case E_IfTrue htrue hc =>
+        rw[hfalse] at htrue
+        contradiction
+      case E_IfFalse _ hc =>
+        exact hc
+    . intro h
+      apply ceval.E_IfFalse
+      . rw[hfalse]
+      . exact h
+
 end Equiv
