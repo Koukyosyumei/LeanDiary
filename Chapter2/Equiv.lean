@@ -14,11 +14,12 @@ def set (st: state) (x : String) (v: ℕ) : state :=
 
 -- Syntax of commands
 inductive com: Type
-| skip: com                          -- nop
-| assign (x : String) (a: ℕ) : com   -- x := a
-| seq (c1 c2 : com) : com            -- c1; c2
-| if_ (b : Bool) (c1 c2 : com) : com -- if b then c1 else c2
-| while (b : Bool) (c : com) : com   -- while b do c
+| skip: com                               -- nop
+| assign (x : String) (a: ℕ) : com        -- x := a
+| assignvar (x: String) (y: String) : com -- x := y
+| seq (c1 c2 : com) : com                 -- c1; c2
+| if_ (b : Bool) (c1 c2 : com) : com      -- if b then c1 else c2
+| while (b : Bool) (c : com) : com        -- while b do c
 
 -- inductive definitions in Lean come with an important implicit principle:
 -- ** the only ways to construct proofs of the inductive relation are through its constructors.
@@ -29,6 +30,8 @@ inductive ceval : com -> state -> state -> Prop
     ceval com.skip st st
 | E_Assign : ∀ (st : state) (x : String) (n : ℕ),
     ceval (com.assign x n) st (set st x n)
+| E_AssignVar : ∀ (st : state) (x : String) (y : String),
+    ceval (com.assignvar x y) st (set st x (get st y))
 | E_Seq : ∀ (c1 c2 : com) (st st' st'' : state),
     ceval c1 st st' →
     ceval c2 st' st'' →
