@@ -54,9 +54,16 @@ theorem skip_left (c : com) (st st' : state) :
   constructor
   -- forward (→)
   . intro h
+    -- Since `h` is a proof about a sequence evaluation, it must have been constructed using the `E_Seq` rule.
+    -- This breaks `h` down into its components.
     cases h
+    -- This pattern matches the `E_Seq` constructor, giving us:
+    --     `st''`: An intermediate state after executing skip
+    --     `h_skip`: A proof that `ceval com.skip st st''`
+    --     `h_c`: A proof that `ceval c st'' st'`
     case E_Seq st'' h_skip h_c =>
         cases h_skip
+        -- Matches the `E_Skip` constructor
         case E_Skip =>
             exact h_c
   -- backward (←)
