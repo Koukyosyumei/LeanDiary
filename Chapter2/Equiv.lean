@@ -169,7 +169,7 @@ theorem swap_if_branches:
         repeat rfl
 
 theorem while_false:
-    ∀ (b : Bool), ∀ (c₁ : com), b = false → cequiv (com.while b c₁) com.skip := by
+    ∀ (b : Bool), ∀ (c : com), b = false → cequiv (com.while b c) com.skip := by
     intros b c₁ hfalse
     rw[cequiv]
     intros st st'
@@ -186,5 +186,32 @@ theorem while_false:
       case E_Skip =>
         apply ceval.E_WhileFalse
         exact hfalse
+
+theorem seq_assoc:
+    ∀ (c₁ c₂ c₃ : com), cequiv (com.seq (com.seq c₁ c₂) c₃) (com.seq c₁ (com.seq c₂ c₃)) := by
+    intros c₁ c₂ c₃
+    rw[cequiv]
+    intros st st'
+    constructor
+    . intro h
+      cases h
+      case E_Seq st'' hs hc =>
+        cases hs
+        case E_Seq st1 h1 h2 =>
+            apply ceval.E_Seq
+            . exact h1
+            apply ceval.E_Seq
+            . exact h2
+            . exact hc
+    . intro h
+      cases h
+      case E_Seq st'' hs hc =>
+        cases hc
+        case E_Seq st1 h1 h2 =>
+            apply ceval.E_Seq
+            apply ceval.E_Seq
+            .exact hs
+            .exact h1
+            .exact h2
 
 end Equiv
