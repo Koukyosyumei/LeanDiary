@@ -41,6 +41,10 @@ inductive ceval : com -> state -> state -> Prop
 
 namespace Equiv
 
+def cequiv (c₁ c₂ : com) : Prop :=
+    ∀ (st st' : state),
+    ceval c₁ st st' ↔ ceval c₂ st st'
+
 -- Executing `skip` does not change the state
 -- This directly follows from the `E_Skip` rule
 theorem skip_preserves_state (st : state) :
