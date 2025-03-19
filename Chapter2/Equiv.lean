@@ -62,7 +62,7 @@ theorem skip_left:
   intro c
   -- breaking the statement into two directions
   rw [cequiv]
-  intro st st'
+  intros st st'
   constructor
   -- forward (→)
   . intro h
@@ -88,7 +88,7 @@ theorem skip_right:
     ∀ (c: com), cequiv (com.seq c com.skip) c := by
     intro c
     rw[cequiv]
-    intro st st'
+    intros st st'
     constructor
     . intro h
       cases h
@@ -103,9 +103,9 @@ theorem skip_right:
 
 theorem if_true:
     ∀ (b: Bool), ∀ (c₁ c₂ : com), b = true → cequiv (com.if_ b c₁ c₂) c₁ := by
-    intro b c₁ c₂ htrue
+    intros b c₁ c₂ htrue
     rw[cequiv]
-    intro st st'
+    intros st st'
     constructor
     . intro h
       cases h
@@ -121,9 +121,9 @@ theorem if_true:
 
 theorem if_false:
     ∀ (b: Bool), ∀ (c₁ c₂ : com), b = false → cequiv (com.if_ b c₁ c₂) c₂ := by
-    intro b c₁ c₂ hfalse
+    intros b c₁ c₂ hfalse
     rw[cequiv]
-    intro st st'
+    intros st st'
     constructor
     . intro h
       cases h
@@ -136,5 +136,36 @@ theorem if_false:
       apply ceval.E_IfFalse
       . rw[hfalse]
       . exact h
+
+theorem swap_if_branches:
+    ∀ (b : Bool), ∀ (c₁ c₂ : com), cequiv (com.if_ b c₁ c₂) (com.if_ (¬b) c₂ c₁) := by
+    intros b c₁ c₂
+    rw[cequiv]
+    intros st st'
+    constructor
+    . intro h
+      cases b
+      case false =>
+        rw[if_true]
+        rw[if_false] at h
+        exact h
+        repeat rfl
+      case true =>
+        rw[if_false]
+        rw[if_true] at h
+        exact h
+        repeat rfl
+    . intro h
+      cases b
+      case false =>
+        rw[if_false]
+        rw[if_true] at h
+        exact h
+        repeat rfl
+      case true =>
+        rw[if_true]
+        rw[if_false] at h
+        exact h
+        repeat rfl
 
 end Equiv
