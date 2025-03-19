@@ -99,4 +99,20 @@ theorem skip_right (c : com) :
       . exact h
       . apply ceval.E_Skip
 
+theorem if_true_simple (c₁ c₂ : com):
+    cequiv (com.if_ true c₁ c₂) c₁ := by
+    rw[cequiv]
+    intro st st'
+    constructor
+    . intro h
+      cases h
+      case E_IfTrue _ hc =>
+        exact hc
+      case E_IfFalse _ hc =>
+        contradiction
+    . intro h
+      apply ceval.E_IfTrue
+      . rfl
+      . exact h
+
 end Equiv
