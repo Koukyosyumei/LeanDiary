@@ -38,10 +38,10 @@ inductive CEval : Command -> State -> State -> Prop
     CEval c1 st st' → CEval (.if_ true c1 c2) st st'
 | if_false (st st' : State) (b : Bool) (c1 c2 : Command) :
     CEval c2 st st' → CEval (.if_ false c1 c2) st st'
-| while_false : ∀ (st : State) (b : Bool) (c : Command),
-    b = false → CEval (Command.while b c) st st
-| while_true : ∀ (st st' st'' : State) (b : Bool) (c : Command),
-    b = true → CEval c st st' → CEval (Command.while b c) st' st'' → CEval (Command.while b c) st st''
+| while_false (st : State) (c : Command) :
+    CEval (.while false c) st st
+| while_true (st st' st'' : State) (c : Command) :
+    CEval c st st' → CEval (.while true c) st' st'' → CEval (.while true c) st st''
 
 namespace Equiv
 
@@ -180,13 +180,12 @@ theorem while_false:
       case while_false _ =>
         apply CEval.skip
       case while_true htrue hc hw =>
-        rw[hfalse] at htrue
         contradiction
     . intro h
       cases h
       case skip =>
+        rw[hfalse]
         apply CEval.while_false
-        exact hfalse
 
 theorem seq_assoc:
     ∀ (c₁ c₂ c₃ : Command), cequiv (Command.seq (Command.seq c₁ c₂) c₃) (Command.seq c₁ (Command.seq c₂ c₃)) := by
