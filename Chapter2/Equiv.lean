@@ -26,17 +26,15 @@ inductive Command: Type
 
 -- State transition
 inductive CEval : Command -> State -> State -> Prop
-| skip : ∀ (st : State),
-    CEval Command.skip st st
-| assign : ∀ (st : State) (x : String) (n : ℕ),
-    CEval (Command.assign x n) st (set st x n)
-| assignvar : ∀ (st : State) (x : String) (y : String),
-    CEval (Command.assignvar x y) st (set st x (get st y))
-| seq : ∀ (c1 c2 : Command) (st st' st'' : State),
-    CEval c1 st st' →
-    CEval c2 st' st'' →
-    CEval (Command.seq c1 c2) st st''
-| if_true : ∀ (st st' : State) (b : Bool) (c1 c2 : Command),
+| skip (st : State) :
+    CEval .skip st st
+| assign (st : State) (x : String) (n : ℕ) :
+    CEval (.assign x n) st (set st x n)
+| assignvar (st : State) (x : String) (y : String) :
+    CEval (.assignvar x y) st (set st x (get st y))
+| seq (c1 c2 : Command) (st st' st'' : State) :
+    CEval c1 st st' → CEval c2 st' st'' → CEval (.seq c1 c2) st st''
+| if_true (st st' : State) (b : Bool) (c1 c2 : Command) :
     b = true → CEval c1 st st' → CEval (Command.if_ b c1 c2) st st'
 | if_false : ∀ (st st' : State) (b : Bool) (c1 c2 : Command),
     b = false → CEval c2 st st' → CEval (Command.if_ b c1 c2) st st'
