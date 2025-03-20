@@ -185,5 +185,14 @@ lemma h_eq (st: Imp.State) (x : String) : Imp.set st x (Imp.get st x) = st := by
         rw[if_neg h]
     }
 
+theorem while_true_nonterm : ∀ c st₁ st₂, ¬Imp.CEval (.while true c) st₁ st₂ := by
+  intros c st₁ st₂ h
+  generalize e : Imp.Command.while true c = c' at h
+  induction h
+  <;>
+  cases e
+  next ih =>
+    apply ih
+    rfl
 
 end Equiv
