@@ -25,37 +25,37 @@ inductive Command: Type
 -- ** the only ways to construct proofs of the inductive relation are through its constructors.
 
 -- State transition
-inductive ceval : Command -> State -> State -> Prop
-| E_Skip : ∀ (st : State),
-    ceval Command.skip st st
-| E_Assign : ∀ (st : State) (x : String) (n : ℕ),
-    ceval (Command.assign x n) st (set st x n)
-| E_AssignVar : ∀ (st : State) (x : String) (y : String),
-    ceval (Command.assignvar x y) st (set st x (get st y))
-| E_Seq : ∀ (c1 c2 : Command) (st st' st'' : State),
-    ceval c1 st st' →
-    ceval c2 st' st'' →
-    ceval (Command.seq c1 c2) st st''
-| E_IfTrue : ∀ (st st' : State) (b : Bool) (c1 c2 : Command),
-    b = true → ceval c1 st st' → ceval (Command.if_ b c1 c2) st st'
-| E_IfFalse : ∀ (st st' : State) (b : Bool) (c1 c2 : Command),
-    b = false → ceval c2 st st' → ceval (Command.if_ b c1 c2) st st'
-| E_WhileFalse : ∀ (st : State) (b : Bool) (c : Command),
-    b = false → ceval (Command.while b c) st st
-| E_WhileTrue : ∀ (st st' st'' : State) (b : Bool) (c : Command),
-    b = true → ceval c st st' → ceval (Command.while b c) st' st'' → ceval (Command.while b c) st st''
+inductive CEval : Command -> State -> State -> Prop
+| skip : ∀ (st : State),
+    CEval Command.skip st st
+| assign : ∀ (st : State) (x : String) (n : ℕ),
+    CEval (Command.assign x n) st (set st x n)
+| assignvar : ∀ (st : State) (x : String) (y : String),
+    CEval (Command.assignvar x y) st (set st x (get st y))
+| seq : ∀ (c1 c2 : Command) (st st' st'' : State),
+    CEval c1 st st' →
+    CEval c2 st' st'' →
+    CEval (Command.seq c1 c2) st st''
+| if_true : ∀ (st st' : State) (b : Bool) (c1 c2 : Command),
+    b = true → CEval c1 st st' → CEval (Command.if_ b c1 c2) st st'
+| if_false : ∀ (st st' : State) (b : Bool) (c1 c2 : Command),
+    b = false → CEval c2 st st' → CEval (Command.if_ b c1 c2) st st'
+| while_false : ∀ (st : State) (b : Bool) (c : Command),
+    b = false → CEval (Command.while b c) st st
+| while_true : ∀ (st st' st'' : State) (b : Bool) (c : Command),
+    b = true → CEval c st st' → CEval (Command.while b c) st' st'' → CEval (Command.while b c) st st''
 
 namespace Equiv
 
 def cequiv (c₁ c₂ : Command) : Prop :=
     ∀ (st st' : State),
-    ceval c₁ st st' ↔ ceval c₂ st st'
+    CEval c₁ st st' ↔ CEval c₂ st st'
 
 -- Executing `skip` does not change the State
--- This directly follows from the `E_Skip` rule
+-- This directly follows from the `skip` rule
 theorem skip_preserves_State:
-  ∀ (st: State), ceval Command.skip st st := by
-  apply ceval.E_Skip
+  ∀ (st: State), CEval Command.skip st st := by
+  apply CEval.skip
 
 -- Proving a command equivalence
 
@@ -69,22 +69,22 @@ theorem skip_left:
   constructor
   -- forward (→)
   . intro h
-    -- Since `h` is a proof about a sequence evaluation, it must have been constructed using the `E_Seq` rule.
+    -- Since `h` is a proof about a sequence evaluation, it must have been constructed using the `seq` rule.
     -- This breaks `h` down into its components.
     cases h
-    -- This pattern matches the `E_Seq` constructor, giving us:
+    -- This pattern matches the `seq` constructor, giving us:
     --     `st''`: An intermediate State after executing skip
-    --     `h_skip`: A proof that `ceval Command.skip st st''`
-    --     `h_c`: A proof that `ceval c st'' st'`
-    case E_Seq st'' h_skip h_c =>
+    --     `h_skip`: A proof that `CEval Command.skip st st''`
+    --     `h_c`: A proof that `CEval c st'' st'`
+    case seq st'' h_skip h_c =>
         cases h_skip
-        -- Matches the `E_Skip` constructor
-        case E_Skip =>
+        -- Matches the `skip` constructor
+        case skip =>
             exact h_c
   -- backward (←)
   . intro h
-    apply ceval.E_Seq
-    . apply ceval.E_Skip
+    apply CEval.seq
+    . apply CEval.skip
     . exact h
 
 theorem skip_right:
@@ -95,14 +95,14 @@ theorem skip_right:
     constructor
     . intro h
       cases h
-      case E_Seq st'' h_c h_skip =>
+      case seq st'' h_c h_skip =>
         cases h_skip
-        case E_Skip =>
+        case skip =>
             exact h_c
     . intro h
-      apply ceval.E_Seq
+      apply CEval.seq
       . exact h
-      . apply ceval.E_Skip
+      . apply CEval.skip
 
 theorem if_true:
     ∀ (b: Bool), ∀ (c₁ c₂ : Command), b = true → cequiv (Command.if_ b c₁ c₂) c₁ := by
@@ -112,13 +112,13 @@ theorem if_true:
     constructor
     . intro h
       cases h
-      case E_IfTrue _ hc =>
+      case if_true _ hc =>
         exact hc
-      case E_IfFalse hfalse hc =>
+      case if_false hfalse hc =>
         rw[htrue] at hfalse
         contradiction
     . intro h
-      apply ceval.E_IfTrue
+      apply CEval.if_true
       . rw[htrue]
       . exact h
 
@@ -130,13 +130,13 @@ theorem if_false:
     constructor
     . intro h
       cases h
-      case E_IfTrue htrue hc =>
+      case if_true htrue hc =>
         rw[hfalse] at htrue
         contradiction
-      case E_IfFalse _ hc =>
+      case if_false _ hc =>
         exact hc
     . intro h
-      apply ceval.E_IfFalse
+      apply CEval.if_false
       . rw[hfalse]
       . exact h
 
@@ -179,15 +179,15 @@ theorem while_false:
     constructor
     . intro h
       cases h
-      case E_WhileFalse _ =>
-        apply ceval.E_Skip
-      case E_WhileTrue htrue hc hw =>
+      case while_false _ =>
+        apply CEval.skip
+      case while_true htrue hc hw =>
         rw[hfalse] at htrue
         contradiction
     . intro h
       cases h
-      case E_Skip =>
-        apply ceval.E_WhileFalse
+      case skip =>
+        apply CEval.while_false
         exact hfalse
 
 theorem seq_assoc:
@@ -198,21 +198,21 @@ theorem seq_assoc:
     constructor
     . intro h
       cases h
-      case E_Seq st'' hs hc =>
+      case seq st'' hs hc =>
         cases hs
-        case E_Seq st1 h1 h2 =>
-            apply ceval.E_Seq
+        case seq st1 h1 h2 =>
+            apply CEval.seq
             . exact h1
-            apply ceval.E_Seq
+            apply CEval.seq
             . exact h2
             . exact hc
     . intro h
       cases h
-      case E_Seq st'' hs hc =>
+      case seq st'' hs hc =>
         cases hc
-        case E_Seq st1 h1 h2 =>
-            apply ceval.E_Seq
-            apply ceval.E_Seq
+        case seq st1 h1 h2 =>
+            apply CEval.seq
+            apply CEval.seq
             .exact hs
             .exact h1
             .exact h2
