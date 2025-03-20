@@ -199,7 +199,7 @@ theorem while_true : ∀ (c: Imp.Command), ∀ (b : Bool),
   (b = true) → cequiv (.while b c) (.while true .skip) := by
   intros c b htrue
   rw[cequiv]
-  intros st st'
+  intros st₁ st₂
   constructor
   . intro h
     rw[htrue] at h
