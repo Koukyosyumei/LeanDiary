@@ -1,6 +1,6 @@
 import Mathlib.Data.Nat.Basic
 import Mathlib.Tactic
-import Chapter2.Basic
+import Chapter2.Imp
 
 namespace Equiv
 
