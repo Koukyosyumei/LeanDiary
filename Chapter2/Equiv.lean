@@ -13,55 +13,55 @@ def set (st: State) (x : String) (v: ℕ) : State :=
   fun y => if y = x then v else st y
 
 -- Syntax of commands
-inductive com: Type
-| skip: com                               -- nop
-| assign (x : String) (a: ℕ) : com        -- x := a
-| assignvar (x: String) (y: String) : com -- x := y
-| seq (c1 c2 : com) : com                 -- c1; c2
-| if_ (b : Bool) (c1 c2 : com) : com      -- if b then c1 else c2
-| while (b : Bool) (c : com) : com        -- while b do c
+inductive Command: Type
+| skip: Command                               -- nop
+| assign (x : String) (a: ℕ) : Command        -- x := a
+| assignvar (x: String) (y: String) : Command -- x := y
+| seq (c1 c2 : Command) : Command                 -- c1; c2
+| if_ (b : Bool) (c1 c2 : Command) : Command      -- if b then c1 else c2
+| while (b : Bool) (c : Command) : Command        -- while b do c
 
 -- inductive definitions in Lean come with an important implicit principle:
 -- ** the only ways to construct proofs of the inductive relation are through its constructors.
 
 -- State transition
-inductive ceval : com -> State -> State -> Prop
+inductive ceval : Command -> State -> State -> Prop
 | E_Skip : ∀ (st : State),
-    ceval com.skip st st
+    ceval Command.skip st st
 | E_Assign : ∀ (st : State) (x : String) (n : ℕ),
-    ceval (com.assign x n) st (set st x n)
+    ceval (Command.assign x n) st (set st x n)
 | E_AssignVar : ∀ (st : State) (x : String) (y : String),
-    ceval (com.assignvar x y) st (set st x (get st y))
-| E_Seq : ∀ (c1 c2 : com) (st st' st'' : State),
+    ceval (Command.assignvar x y) st (set st x (get st y))
+| E_Seq : ∀ (c1 c2 : Command) (st st' st'' : State),
     ceval c1 st st' →
     ceval c2 st' st'' →
-    ceval (com.seq c1 c2) st st''
-| E_IfTrue : ∀ (st st' : State) (b : Bool) (c1 c2 : com),
-    b = true → ceval c1 st st' → ceval (com.if_ b c1 c2) st st'
-| E_IfFalse : ∀ (st st' : State) (b : Bool) (c1 c2 : com),
-    b = false → ceval c2 st st' → ceval (com.if_ b c1 c2) st st'
-| E_WhileFalse : ∀ (st : State) (b : Bool) (c : com),
-    b = false → ceval (com.while b c) st st
-| E_WhileTrue : ∀ (st st' st'' : State) (b : Bool) (c : com),
-    b = true → ceval c st st' → ceval (com.while b c) st' st'' → ceval (com.while b c) st st''
+    ceval (Command.seq c1 c2) st st''
+| E_IfTrue : ∀ (st st' : State) (b : Bool) (c1 c2 : Command),
+    b = true → ceval c1 st st' → ceval (Command.if_ b c1 c2) st st'
+| E_IfFalse : ∀ (st st' : State) (b : Bool) (c1 c2 : Command),
+    b = false → ceval c2 st st' → ceval (Command.if_ b c1 c2) st st'
+| E_WhileFalse : ∀ (st : State) (b : Bool) (c : Command),
+    b = false → ceval (Command.while b c) st st
+| E_WhileTrue : ∀ (st st' st'' : State) (b : Bool) (c : Command),
+    b = true → ceval c st st' → ceval (Command.while b c) st' st'' → ceval (Command.while b c) st st''
 
 namespace Equiv
 
-def cequiv (c₁ c₂ : com) : Prop :=
+def cequiv (c₁ c₂ : Command) : Prop :=
     ∀ (st st' : State),
     ceval c₁ st st' ↔ ceval c₂ st st'
 
 -- Executing `skip` does not change the State
 -- This directly follows from the `E_Skip` rule
 theorem skip_preserves_State:
-  ∀ (st: State), ceval com.skip st st := by
+  ∀ (st: State), ceval Command.skip st st := by
   apply ceval.E_Skip
 
 -- Proving a command equivalence
 
 -- ∀c, (skip; c) is equivalent to c
 theorem skip_left:
-  ∀ (c: com), cequiv (com.seq com.skip c) c := by
+  ∀ (c: Command), cequiv (Command.seq Command.skip c) c := by
   intro c
   -- breaking the Statement into two directions
   rw [cequiv]
@@ -74,7 +74,7 @@ theorem skip_left:
     cases h
     -- This pattern matches the `E_Seq` constructor, giving us:
     --     `st''`: An intermediate State after executing skip
-    --     `h_skip`: A proof that `ceval com.skip st st''`
+    --     `h_skip`: A proof that `ceval Command.skip st st''`
     --     `h_c`: A proof that `ceval c st'' st'`
     case E_Seq st'' h_skip h_c =>
         cases h_skip
@@ -88,7 +88,7 @@ theorem skip_left:
     . exact h
 
 theorem skip_right:
-    ∀ (c: com), cequiv (com.seq c com.skip) c := by
+    ∀ (c: Command), cequiv (Command.seq c Command.skip) c := by
     intro c
     rw[cequiv]
     intros st st'
@@ -105,7 +105,7 @@ theorem skip_right:
       . apply ceval.E_Skip
 
 theorem if_true:
-    ∀ (b: Bool), ∀ (c₁ c₂ : com), b = true → cequiv (com.if_ b c₁ c₂) c₁ := by
+    ∀ (b: Bool), ∀ (c₁ c₂ : Command), b = true → cequiv (Command.if_ b c₁ c₂) c₁ := by
     intros b c₁ c₂ htrue
     rw[cequiv]
     intros st st'
@@ -123,7 +123,7 @@ theorem if_true:
       . exact h
 
 theorem if_false:
-    ∀ (b: Bool), ∀ (c₁ c₂ : com), b = false → cequiv (com.if_ b c₁ c₂) c₂ := by
+    ∀ (b: Bool), ∀ (c₁ c₂ : Command), b = false → cequiv (Command.if_ b c₁ c₂) c₂ := by
     intros b c₁ c₂ hfalse
     rw[cequiv]
     intros st st'
@@ -141,7 +141,7 @@ theorem if_false:
       . exact h
 
 theorem swap_if_branches:
-    ∀ (b : Bool), ∀ (c₁ c₂ : com), cequiv (com.if_ b c₁ c₂) (com.if_ (¬b) c₂ c₁) := by
+    ∀ (b : Bool), ∀ (c₁ c₂ : Command), cequiv (Command.if_ b c₁ c₂) (Command.if_ (¬b) c₂ c₁) := by
     intros b c₁ c₂
     rw[cequiv]
     intros st st'
@@ -172,7 +172,7 @@ theorem swap_if_branches:
         repeat rfl
 
 theorem while_false:
-    ∀ (b : Bool), ∀ (c : com), b = false → cequiv (com.while b c) com.skip := by
+    ∀ (b : Bool), ∀ (c : Command), b = false → cequiv (Command.while b c) Command.skip := by
     intros b c₁ hfalse
     rw[cequiv]
     intros st st'
@@ -191,7 +191,7 @@ theorem while_false:
         exact hfalse
 
 theorem seq_assoc:
-    ∀ (c₁ c₂ c₃ : com), cequiv (com.seq (com.seq c₁ c₂) c₃) (com.seq c₁ (com.seq c₂ c₃)) := by
+    ∀ (c₁ c₂ c₃ : Command), cequiv (Command.seq (Command.seq c₁ c₂) c₃) (Command.seq c₁ (Command.seq c₂ c₃)) := by
     intros c₁ c₂ c₃
     rw[cequiv]
     intros st st'
