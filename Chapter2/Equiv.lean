@@ -195,4 +195,18 @@ theorem while_true_nonterm :
     apply ih
     rfl
 
+theorem while_true : ∀ (c: Imp.Command), ∀ (b : Bool),
+  (b = true) → cequiv (.while b c) (.while true .skip) := by
+  intros c b htrue
+  rw[cequiv]
+  intros st st'
+  constructor
+  . intro h
+    rw[htrue] at h
+    apply while_true_nonterm at h
+    contradiction
+  . intro h
+    apply while_true_nonterm at h
+    contradiction
+
 end Equiv
