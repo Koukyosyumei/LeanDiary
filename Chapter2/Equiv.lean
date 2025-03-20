@@ -129,8 +129,8 @@ theorem swap_if_branches:
         repeat rfl
 
 theorem while_false:
-    ∀ (b : Bool), ∀ (c : Imp.Command), b = false → cequiv (.while b c) .skip := by
-    intros b c₁ hfalse
+    ∀ (c : Imp.Command), cequiv (.while false c) .skip := by
+    intros c₁
     rw[cequiv]
     intros st st'
     constructor
@@ -138,12 +138,9 @@ theorem while_false:
       cases h
       case while_false _ =>
         apply Imp.CEval.skip
-      case while_true htrue hc hw =>
-        contradiction
     . intro h
       cases h
       case skip =>
-        rw[hfalse]
         apply Imp.CEval.while_false
 
 theorem seq_assoc:
@@ -208,5 +205,15 @@ theorem while_true : ∀ (c: Imp.Command), ∀ (b : Bool),
   . intro h
     apply while_true_nonterm at h
     contradiction
+
+theorem loop_unrolling : ∀ (c: Imp.Command), ∀ (b : Bool),
+  cequiv (.while b c) (.if_ b (.seq c (.while b c)) .skip) := by
+  intros c b
+  rw[cequiv]
+  intros st₁ st₂
+  constructor
+  . intro h
+    cases b
+    case false =>
 
 end Equiv
