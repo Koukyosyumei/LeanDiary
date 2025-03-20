@@ -34,10 +34,10 @@ inductive CEval : Command -> State -> State -> Prop
     CEval (.assignvar x y) st (set st x (get st y))
 | seq (c1 c2 : Command) (st st' st'' : State) :
     CEval c1 st st' → CEval c2 st' st'' → CEval (.seq c1 c2) st st''
-| if_true (st st' : State) (b : Bool) (c1 c2 : Command) :
-    b = true → CEval c1 st st' → CEval (Command.if_ b c1 c2) st st'
-| if_false : ∀ (st st' : State) (b : Bool) (c1 c2 : Command),
-    b = false → CEval c2 st st' → CEval (Command.if_ b c1 c2) st st'
+| if_true (st st' : State) (c1 c2 : Command) :
+    CEval c1 st st' → CEval (.if_ true c1 c2) st st'
+| if_false (st st' : State) (b : Bool) (c1 c2 : Command) :
+    CEval c2 st st' → CEval (.if_ false c1 c2) st st'
 | while_false : ∀ (st : State) (b : Bool) (c : Command),
     b = false → CEval (Command.while b c) st st
 | while_true : ∀ (st st' st'' : State) (b : Bool) (c : Command),
@@ -110,15 +110,14 @@ theorem if_true:
     constructor
     . intro h
       cases h
-      case if_true _ hc =>
+      case if_true hc =>
         exact hc
       case if_false hfalse hc =>
-        rw[htrue] at hfalse
         contradiction
     . intro h
+      rw[htrue]
       apply CEval.if_true
-      . rw[htrue]
-      . exact h
+      exact h
 
 theorem if_false:
     ∀ (b: Bool), ∀ (c₁ c₂ : Command), b = false → cequiv (Command.if_ b c₁ c₂) c₂ := by
@@ -128,15 +127,16 @@ theorem if_false:
     constructor
     . intro h
       cases h
-      case if_true htrue hc =>
-        rw[hfalse] at htrue
+      case if_true hc =>
         contradiction
       case if_false _ hc =>
         exact hc
     . intro h
+      rw[hfalse]
       apply CEval.if_false
-      . rw[hfalse]
-      . exact h
+      exact b
+      exact h
+
 
 theorem swap_if_branches:
     ∀ (b : Bool), ∀ (c₁ c₂ : Command), cequiv (Command.if_ b c₁ c₂) (Command.if_ (¬b) c₂ c₁) := by
