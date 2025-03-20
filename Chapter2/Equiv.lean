@@ -1,15 +1,15 @@
 import Mathlib.Data.Nat.Basic
 import Mathlib.Tactic
 
--- A `state` can be modeled as a function mapping variable names
+-- A `State` can be modeled as a function mapping variable names
 -- to values (e.g., natural numbers in this tutorial)
-def state := String -> ℕ
+def State := String -> ℕ
 
--- Retrive the value of a variable in the state
-def get (st: state) (x : String) : ℕ := st x
+-- Retrive the value of a variable in the State
+def get (st: State) (x : String) : ℕ := st x
 
--- Update the state with a new value for a variable
-def set (st: state) (x : String) (v: ℕ) : state :=
+-- Update the State with a new value for a variable
+def set (st: State) (x : String) (v: ℕ) : State :=
   fun y => if y = x then v else st y
 
 -- Syntax of commands
@@ -25,36 +25,36 @@ inductive com: Type
 -- ** the only ways to construct proofs of the inductive relation are through its constructors.
 
 -- State transition
-inductive ceval : com -> state -> state -> Prop
-| E_Skip : ∀ (st : state),
+inductive ceval : com -> State -> State -> Prop
+| E_Skip : ∀ (st : State),
     ceval com.skip st st
-| E_Assign : ∀ (st : state) (x : String) (n : ℕ),
+| E_Assign : ∀ (st : State) (x : String) (n : ℕ),
     ceval (com.assign x n) st (set st x n)
-| E_AssignVar : ∀ (st : state) (x : String) (y : String),
+| E_AssignVar : ∀ (st : State) (x : String) (y : String),
     ceval (com.assignvar x y) st (set st x (get st y))
-| E_Seq : ∀ (c1 c2 : com) (st st' st'' : state),
+| E_Seq : ∀ (c1 c2 : com) (st st' st'' : State),
     ceval c1 st st' →
     ceval c2 st' st'' →
     ceval (com.seq c1 c2) st st''
-| E_IfTrue : ∀ (st st' : state) (b : Bool) (c1 c2 : com),
+| E_IfTrue : ∀ (st st' : State) (b : Bool) (c1 c2 : com),
     b = true → ceval c1 st st' → ceval (com.if_ b c1 c2) st st'
-| E_IfFalse : ∀ (st st' : state) (b : Bool) (c1 c2 : com),
+| E_IfFalse : ∀ (st st' : State) (b : Bool) (c1 c2 : com),
     b = false → ceval c2 st st' → ceval (com.if_ b c1 c2) st st'
-| E_WhileFalse : ∀ (st : state) (b : Bool) (c : com),
+| E_WhileFalse : ∀ (st : State) (b : Bool) (c : com),
     b = false → ceval (com.while b c) st st
-| E_WhileTrue : ∀ (st st' st'' : state) (b : Bool) (c : com),
+| E_WhileTrue : ∀ (st st' st'' : State) (b : Bool) (c : com),
     b = true → ceval c st st' → ceval (com.while b c) st' st'' → ceval (com.while b c) st st''
 
 namespace Equiv
 
 def cequiv (c₁ c₂ : com) : Prop :=
-    ∀ (st st' : state),
+    ∀ (st st' : State),
     ceval c₁ st st' ↔ ceval c₂ st st'
 
--- Executing `skip` does not change the state
+-- Executing `skip` does not change the State
 -- This directly follows from the `E_Skip` rule
-theorem skip_preserves_state:
-  ∀ (st: state), ceval com.skip st st := by
+theorem skip_preserves_State:
+  ∀ (st: State), ceval com.skip st st := by
   apply ceval.E_Skip
 
 -- Proving a command equivalence
@@ -63,7 +63,7 @@ theorem skip_preserves_state:
 theorem skip_left:
   ∀ (c: com), cequiv (com.seq com.skip c) c := by
   intro c
-  -- breaking the statement into two directions
+  -- breaking the Statement into two directions
   rw [cequiv]
   intros st st'
   constructor
@@ -73,7 +73,7 @@ theorem skip_left:
     -- This breaks `h` down into its components.
     cases h
     -- This pattern matches the `E_Seq` constructor, giving us:
-    --     `st''`: An intermediate state after executing skip
+    --     `st''`: An intermediate State after executing skip
     --     `h_skip`: A proof that `ceval com.skip st st''`
     --     `h_c`: A proof that `ceval c st'' st'`
     case E_Seq st'' h_skip h_c =>
@@ -217,7 +217,7 @@ theorem seq_assoc:
             .exact h1
             .exact h2
 
-lemma h_eq (st: state) (x : String) : set st x (get st x) = st := by
+lemma h_eq (st: State) (x : String) : set st x (get st x) = st := by
     funext y
     unfold _root_.set _root_.get
     by_cases h: y = x
