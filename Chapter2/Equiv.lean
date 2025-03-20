@@ -18,7 +18,7 @@ theorem skip_preserves_Imp.State:
 
 -- ∀c, (skip; c) is equivalent to c
 theorem skip_left:
-  ∀ (c: Imp.Command), cequiv (Imp.Command.seq Imp.Command.skip c) c := by
+  ∀ (c: Imp.Command), cequiv (.seq .skip c) c := by
   intro c
   -- breaking the Imp.Statement into two directions
   rw [cequiv]
@@ -45,7 +45,7 @@ theorem skip_left:
     . exact h
 
 theorem skip_right:
-    ∀ (c: Imp.Command), cequiv (Imp.Command.seq c Imp.Command.skip) c := by
+    ∀ (c: Imp.Command), cequiv (.seq c .skip) c := by
     intro c
     rw[cequiv]
     intros st st'
@@ -62,7 +62,7 @@ theorem skip_right:
       . apply Imp.CEval.skip
 
 theorem if_true:
-    ∀ (b: Bool), ∀ (c₁ c₂ : Imp.Command), b = true → cequiv (Imp.Command.if_ b c₁ c₂) c₁ := by
+    ∀ (b: Bool), ∀ (c₁ c₂ : Imp.Command), b = true → cequiv (.if_ b c₁ c₂) c₁ := by
     intros b c₁ c₂ htrue
     rw[cequiv]
     intros st st'
@@ -79,7 +79,7 @@ theorem if_true:
       exact h
 
 theorem if_false:
-    ∀ (b: Bool), ∀ (c₁ c₂ : Imp.Command), b = false → cequiv (Imp.Command.if_ b c₁ c₂) c₂ := by
+    ∀ (b: Bool), ∀ (c₁ c₂ : Imp.Command), b = false → cequiv (.if_ b c₁ c₂) c₂ := by
     intros b c₁ c₂ hfalse
     rw[cequiv]
     intros st st'
@@ -98,7 +98,7 @@ theorem if_false:
 
 
 theorem swap_if_branches:
-    ∀ (b : Bool), ∀ (c₁ c₂ : Imp.Command), cequiv (Imp.Command.if_ b c₁ c₂) (Imp.Command.if_ (¬b) c₂ c₁) := by
+    ∀ (b : Bool), ∀ (c₁ c₂ : Imp.Command), cequiv (.if_ b c₁ c₂) (.if_ (¬b) c₂ c₁) := by
     intros b c₁ c₂
     rw[cequiv]
     intros st st'
@@ -129,7 +129,7 @@ theorem swap_if_branches:
         repeat rfl
 
 theorem while_false:
-    ∀ (b : Bool), ∀ (c : Imp.Command), b = false → cequiv (Imp.Command.while b c) Imp.Command.skip := by
+    ∀ (b : Bool), ∀ (c : Imp.Command), b = false → cequiv (.while b c) .skip := by
     intros b c₁ hfalse
     rw[cequiv]
     intros st st'
@@ -147,7 +147,7 @@ theorem while_false:
         apply Imp.CEval.while_false
 
 theorem seq_assoc:
-    ∀ (c₁ c₂ c₃ : Imp.Command), cequiv (Imp.Command.seq (Imp.Command.seq c₁ c₂) c₃) (Imp.Command.seq c₁ (Imp.Command.seq c₂ c₃)) := by
+    ∀ (c₁ c₂ c₃ : Imp.Command), cequiv (.seq (.seq c₁ c₂) c₃) (.seq c₁ (.seq c₂ c₃)) := by
     intros c₁ c₂ c₃
     rw[cequiv]
     intros st st'
