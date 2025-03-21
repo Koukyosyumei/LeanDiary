@@ -282,22 +282,6 @@ theorem while_false:
         have b_eval : Imp.BEval st bexp false := (hfalse st false).mpr false_eval
         exact b_eval
 
-/-
-    have true_eval : Imp.BEval st .btrue true := .btrue st
-    have b_eval : Imp.BEval st bexp true := (hb st true).mpr true_eval
-    cases ih
-    case bfalse =>
-      cases b_eval
-    apply ih
-    rfl
-
-      case while_false.refl st hfalse =>
-    have hcontr : Imp.BEval st Imp.BExp.btrue false := (hb st false).mp hfalse
-    contradiction
-  case while_true.refl st₁ st₂ st₃ htrue hc hfalse g h  =>
-    have hcontr : Imp.BEval st₁ Imp.BExp.btrue true := (hb st₁ true).mp htrue
--/
-
 theorem while_true_nonterm :
   ∀ (bexp : Imp.BExp), ∀ (c: Imp.Command), ∀ (st₁ st₂: Imp.State), bequiv bexp .btrue → ¬Imp.CEval st₁ (.while bexp c) st₂ := by
   intros bexp c st₁ st₂ hb h
