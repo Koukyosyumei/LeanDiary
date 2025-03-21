@@ -261,19 +261,26 @@ the behavior of `skip`.
   - A proof that `cequiv (.while false c) .skip` holds.
 -/
 theorem while_false:
-    ∀ (c : Imp.Command), cequiv (.while false c) .skip := by
-    intros c₁
+    ∀ (bexp : Imp.BExp), ∀ (c : Imp.Command), bequiv bexp .bfalse → cequiv (.while bexp c) .skip := by
+    intros bexp c hfalse
     rw[cequiv]
+    rw[bequiv] at hfalse
     intros st st'
     constructor
     . intro h
       cases h
       case while_false _ =>
         apply Imp.CEval.skip
+      case while_true beval hc hs =>
+        have h_contra := (hfalse st true).mp beval
+        cases h_contra
     . intro h
       cases h
       case skip =>
-        apply Imp.CEval.while_false
+      apply Imp.CEval.while_false
+      . have false_eval : Imp.BEval st Imp.BExp.bfalse false := Imp.BEval.bfalse st
+        have b_eval : Imp.BEval st bexp false := (hfalse st false).mpr false_eval
+        exact b_eval
 
 theorem while_true_nonterm :
   ∀ (c: Imp.Command), ∀ (st₁ st₂: Imp.State), ¬Imp.CEval (.while true c) st₁ st₂ := by
