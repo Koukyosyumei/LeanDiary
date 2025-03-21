@@ -313,18 +313,20 @@ theorem while_true_nonterm :
   next =>
     contradiction
 
-theorem while_true : ∀ (c: Imp.Command),
-  cequiv (.while true c) (.while true .skip) := by
-  intros c
+theorem while_true : ∀ (bexp: Imp.BExp), ∀ (c: Imp.Command),
+  bequiv bexp .btrue → cequiv (.while bexp c) (.while bexp .skip) := by
+  intros bexp c htrue
   rw[cequiv]
   intros st₁ st₂
   constructor
   . intro h
     apply while_true_nonterm at h
     contradiction
+    exact htrue
   . intro h
     apply while_true_nonterm at h
     contradiction
+    exact htrue
 
 theorem loop_unrolling : ∀ (c: Imp.Command), ∀ (b : Bool),
   cequiv (.while b c) (.if_ b (.seq c (.while b c)) .skip) := by
