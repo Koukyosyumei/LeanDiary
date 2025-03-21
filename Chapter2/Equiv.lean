@@ -16,12 +16,12 @@ import Chapter2.Imp
 namespace Equiv
 
 def aequiv (a₁ a₂: Imp.AExp) : Prop :=
-  ∀ (st :Imp.State),
-  Imp.AEval st a₁ = Imp.AEval st a₂
+  ∀ (st :Imp.State), ∀ (n : ℕ),
+  Imp.AEval st a₁ n ↔ Imp.AEval st a₂ n
 
 def bequiv (b₁ b₂: Imp.BExp) : Prop :=
   ∀ (st :Imp.State), ∀ (b : Bool),
-  Imp.BEval b₁ st b ↔ Imp.BEval b₂ st b
+  Imp.BEval st b₁ b ↔ Imp.BEval st b₂ b
 
 /--
 Defines when two commands `c₁` and `c₂` are equivalent.
@@ -35,7 +35,7 @@ executing `c₁` in `st` results in `st'` if and only if executing `c₂` in `st
 -/
 def cequiv (c₁ c₂ : Imp.Command) : Prop :=
     ∀ (st st' : Imp.State),
-    Imp.CEval c₁ st st' ↔ Imp.CEval c₂ st st'
+    Imp.CEval st c₁ st' ↔ Imp.CEval st c₂ st'
 
 /--
 Executing `skip` does not modify the state.
@@ -47,7 +47,7 @@ This follows directly from the operational semantics of `skip`.
   - A proof that evaluating `skip` in `st` results in `st` unchanged.
 -/
 theorem skip_preserves_state:
-  ∀ (st: Imp.State), Imp.CEval Imp.Command.skip st st := by
+  ∀ (st: Imp.State), Imp.CEval st Imp.Command.skip st := by
   apply Imp.CEval.skip
 
 /--
@@ -146,8 +146,8 @@ theorem if_true:
         cases h_contra
     . intro h
       apply Imp.CEval.if_true
-      . have true_eval : Imp.BEval Imp.BExp.btrue st true := Imp.BEval.btrue st
-        have b_eval : Imp.BEval b st true := (htrue st true).mpr true_eval
+      . have true_eval : Imp.BEval st Imp.BExp.btrue true := Imp.BEval.btrue st
+        have b_eval : Imp.BEval st b true := (htrue st true).mpr true_eval
         exact b_eval
       . exact h
 
@@ -181,8 +181,8 @@ theorem if_false:
         exact hc
     . intro h
       apply Imp.CEval.if_false
-      . have false_eval : Imp.BEval Imp.BExp.bfalse st false := Imp.BEval.bfalse st
-        have b_eval : Imp.BEval b st false := (hfalse st false).mpr false_eval
+      . have false_eval : Imp.BEval st Imp.BExp.bfalse false := Imp.BEval.bfalse st
+        have b_eval : Imp.BEval st b false := (hfalse st false).mpr false_eval
         exact b_eval
       . exact h
 

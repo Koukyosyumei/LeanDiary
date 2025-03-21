@@ -114,20 +114,20 @@ Constructors:
 - `while_false`: A while-loop with a false condition terminates immediately without changing the state.
 - `while_true`: A while-loop with a true condition evaluates its body and then continues looping.
 -/
-inductive CEval : Command -> State -> State -> Prop
+inductive CEval : State → Command  -> State -> Prop
 | skip (st : State) :
-    CEval .skip st st
+    CEval st .skip st
 | assign (st : State) (x : String) (a : AExp) (n : ℕ):
-    (AEval st a n) → CEval (.assign x a) st (set st x n)
+    (AEval st a n) → CEval st (.assign x a) (set st x n)
 | seq (c1 c2 : Command) (st st' st'' : State) :
-    CEval c1 st st' → CEval c2 st' st'' → CEval (.seq c1 c2) st st''
+    CEval st c1 st' → CEval st' c2 st'' → CEval st (.seq c1 c2) st''
 | if_true (st st' : State) (b : BExp) (c1 c2 : Command) :
-    BEval st b true → CEval c1 st st' → CEval (.if_ b c1 c2) st st'
+    BEval st b true → CEval st c1 st' → CEval st (.if_ b c1 c2) st'
 | if_false (st st' : State) (b : BExp) (c1 c2 : Command) :
-    BEval st b false → CEval c2 st st' → CEval (.if_ b c1 c2) st st'
+    BEval st b false → CEval st c2 st' → CEval st (.if_ b c1 c2) st'
 | while_false (st : State) (b : BExp) (c : Command) :
-    BEval st b false → CEval (.while b c) st st
+    BEval st b false → CEval st (.while b c) st
 | while_true (st st' st'' : State) (b : BExp) (c : Command) :
-    BEval st b true → CEval c st st' → CEval (.while b c) st' st'' → CEval (.while b c) st st''
+    BEval st b true → CEval st c st' → CEval st' (.while b c) st'' → CEval st (.while b c) st''
 
 end Imp
