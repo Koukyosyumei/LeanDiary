@@ -237,4 +237,20 @@ lemma h_eq (st: Imp.State) (x : String) : Imp.set st x (Imp.get st x) = st := by
         rw[if_neg h]
     }
 
+theorem identify_assignment : ∀ (x : String), cequiv (.assignvar x x) .skip := by
+  intro x
+  rw[cequiv]
+  intros st st'
+  constructor
+  .intro h
+   cases h
+   case assignvar =>
+     rw[h_eq]
+     apply Imp.CEval.skip
+  .intro h
+   cases h
+   case skip =>
+     nth_rewrite 2 [← h_eq st x]
+     apply Imp.CEval.assignvar
+
 end Equiv
