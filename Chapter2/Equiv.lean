@@ -467,4 +467,16 @@ lemma trans_aequiv : ∀ (a₁ a₂ a₃ : Imp.AExp), aequiv a₁ a₂ → aequi
     rw[h₂]
     exact h
 
+lemma refl_cequiv : ∀ (c : Imp.Command), cequiv c c := by
+  intros c
+  rw[cequiv]
+  intros st₁ st₂
+  constructor
+  . intro h
+    exact h
+  . intro h
+    exact h
+
+
+
 end Equiv
