@@ -429,4 +429,27 @@ theorem assign_aequiv : ∀ (x : String) (a : Imp.AExp), aequiv (.var x) a → c
       rw[← ha] at hae
       exact hae
 
+lemma refl_aequiv : ∀ (a : Imp.AExp), aequiv a a := by
+  intro a
+  rw[aequiv]
+  intros st n
+  constructor
+  . intro h
+    exact h
+  . intro h
+    exact h
+
+lemma sym_aequiv : ∀ (a₁ a₂ : Imp.AExp), aequiv a₁ a₂ → aequiv a₂ a₁ := by
+  intro a₁ a₂ ha
+  rw[aequiv]
+  rw[aequiv] at ha
+  intros st n
+  constructor
+  . intro h
+    rw[ha]
+    exact h
+  . intro h
+    rw[← ha]
+    exact h
+
 end Equiv
