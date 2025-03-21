@@ -37,6 +37,23 @@ def cequiv (c₁ c₂ : Imp.Command) : Prop :=
     ∀ (st st' : Imp.State),
     Imp.CEval st c₁ st' ↔ Imp.CEval st c₂ st'
 
+theorem double_negation:
+  ∀ (bexp : Imp.BExp), bequiv bexp (.not (.not bexp)) := by
+  intro bexp
+  rw[bequiv]
+  intro st b
+  constructor
+  . intro h
+    apply Imp.BEval.not at h
+    apply Imp.BEval.not at h
+    simp_all
+  . intro h
+    cases h
+    case not hb hc =>
+      cases hc
+      case not b hn =>
+        simp_all
+
 /--
 Executing `skip` does not modify the state.
 This follows directly from the operational semantics of `skip`.
@@ -199,35 +216,37 @@ Since `b` and `¬b` are always complementary, the execution of the two commands 
   - A proof that `cequiv (.if_ b c₁ c₂) (.if_ (¬b) c₂ c₁)` holds.
 -/
 theorem swap_if_branches:
-    ∀ (b : Bool), ∀ (c₁ c₂ : Imp.Command), cequiv (.if_ b c₁ c₂) (.if_ (¬b) c₂ c₁) := by
+    ∀ (b : Imp.BExp), ∀ (c₁ c₂ : Imp.Command), cequiv (.if_ b c₁ c₂) (.if_ (.not b) c₂ c₁) := by
     intros b c₁ c₂
     rw[cequiv]
     intros st st'
     constructor
     . intro h
-      cases b
-      case false =>
-        rw[if_true]
-        rw[if_false] at h
-        exact h
-        repeat rfl
-      case true =>
-        rw[if_false]
-        rw[if_true] at h
-        exact h
-        repeat rfl
+      cases h
+      case if_true hb hc =>
+        apply Imp.CEval.if_false
+        apply Imp.BEval.not at hb
+        exact hb
+        exact hc
+      case if_false hb hc =>
+        apply Imp.CEval.if_true
+        apply Imp.BEval.not at hb
+        exact hb
+        exact hc
     . intro h
-      cases b
-      case false =>
-        rw[if_false]
-        rw[if_true] at h
-        exact h
-        repeat rfl
-      case true =>
-        rw[if_true]
-        rw[if_false] at h
-        exact h
-        repeat rfl
+      cases h
+      case if_true hb hc =>
+        apply Imp.CEval.if_false
+        apply Imp.BEval.not at hb
+        rw[<-double_negation] at hb
+        exact hb
+        exact hc
+      case if_false hb hc =>
+        apply Imp.CEval.if_true
+        apply Imp.BEval.not at hb
+        rw[<-double_negation] at hb
+        exact hb
+        exact hc
 
 /--
 A `while` loop with a `false` condition is equivalent to `skip`.
