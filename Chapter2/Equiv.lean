@@ -10,7 +10,7 @@ def cequiv (c₁ c₂ : Imp.Command) : Prop :=
 
 -- Executing `skip` does not change the Imp.State
 -- This directly follows from the `skip` rule
-theorem skip_preserves_Imp.State:
+theorem skip_preserves_state:
   ∀ (st: Imp.State), Imp.CEval Imp.Command.skip st st := by
   apply Imp.CEval.skip
 
@@ -143,6 +143,61 @@ theorem while_false:
       case skip =>
         apply Imp.CEval.while_false
 
+theorem while_true_nonterm :
+  ∀ (c: Imp.Command), ∀ (st₁ st₂: Imp.State), ¬Imp.CEval (.while true c) st₁ st₂ := by
+  intros c st₁ st₂ h
+  generalize e : Imp.Command.while true c = c' at h
+  induction h <;>
+  cases e
+  next ih =>
+    apply ih
+    rfl
+
+theorem while_true : ∀ (c: Imp.Command),
+  cequiv (.while true c) (.while true .skip) := by
+  intros c
+  rw[cequiv]
+  intros st₁ st₂
+  constructor
+  . intro h
+    apply while_true_nonterm at h
+    contradiction
+  . intro h
+    apply while_true_nonterm at h
+    contradiction
+
+theorem loop_unrolling : ∀ (c: Imp.Command), ∀ (b : Bool),
+  cequiv (.while b c) (.if_ b (.seq c (.while b c)) .skip) := by
+  intros c b
+  rw[cequiv]
+  intros st₁ st₂
+  constructor
+  . intro h
+    cases b
+    case false =>
+      apply Imp.CEval.if_false
+      rw[while_false] at h
+      exact false
+      rw[while_false] at h
+      exact h
+    case true =>
+      apply while_true_nonterm at h
+      contradiction
+  . intro h
+    cases b
+    case true =>
+      cases h
+      case if_true h_seq =>
+        cases h_seq
+        case seq st₃ hc hw =>
+          apply while_true_nonterm at hw
+          contradiction
+    case false =>
+      cases h
+      case if_false b' hs =>
+        rw[while_false]
+        exact hs
+
 theorem seq_assoc:
     ∀ (c₁ c₂ c₃ : Imp.Command), cequiv (.seq (.seq c₁ c₂) c₃) (.seq c₁ (.seq c₂ c₃)) := by
     intros c₁ c₂ c₃
@@ -181,39 +236,5 @@ lemma h_eq (st: Imp.State) (x : String) : Imp.set st x (Imp.get st x) = st := by
     {
         rw[if_neg h]
     }
-
-theorem while_true_nonterm :
-  ∀ (c: Imp.Command), ∀ (st₁ st₂: Imp.State), ¬Imp.CEval (.while true c) st₁ st₂ := by
-  intros c st₁ st₂ h
-  generalize e : Imp.Command.while true c = c' at h
-  induction h <;>
-  cases e
-  next ih =>
-    apply ih
-    rfl
-
-theorem while_true : ∀ (c: Imp.Command), ∀ (b : Bool),
-  (b = true) → cequiv (.while b c) (.while true .skip) := by
-  intros c b htrue
-  rw[cequiv]
-  intros st₁ st₂
-  constructor
-  . intro h
-    rw[htrue] at h
-    apply while_true_nonterm at h
-    contradiction
-  . intro h
-    apply while_true_nonterm at h
-    contradiction
-
-theorem loop_unrolling : ∀ (c: Imp.Command), ∀ (b : Bool),
-  cequiv (.while b c) (.if_ b (.seq c (.while b c)) .skip) := by
-  intros c b
-  rw[cequiv]
-  intros st₁ st₂
-  constructor
-  . intro h
-    cases b
-    case false =>
 
 end Equiv
