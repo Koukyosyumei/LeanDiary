@@ -312,37 +312,39 @@ theorem while_true : ∀ (bexp: Imp.BExp), ∀ (c: Imp.Command),
     contradiction
     exact htrue
 
-theorem loop_unrolling : ∀ (c: Imp.Command), ∀ (b : Bool),
+theorem loop_unrolling : ∀ (b: Imp.BExp), ∀ (c: Imp.Command),
   cequiv (.while b c) (.if_ b (.seq c (.while b c)) .skip) := by
-  intros c b
+  intros b c
   rw[cequiv]
   intros st₁ st₂
   constructor
   . intro h
-    cases b
-    case false =>
+    cases h
+    case while_false hfalse =>
       apply Imp.CEval.if_false
-      rw[while_false] at h
-      exact false
-      rw[while_false] at h
-      exact h
-    case true =>
-      apply while_true_nonterm at h
-      contradiction
+      exact hfalse
+      apply Imp.CEval.skip
+    case while_true st₃ hb hc hw =>
+      apply Imp.CEval.if_true
+      exact hb
+      apply Imp.CEval.seq
+      exact hc
+      exact hw
   . intro h
-    cases b
-    case true =>
-      cases h
-      case if_true h_seq =>
-        cases h_seq
-        case seq st₃ hc hw =>
-          apply while_true_nonterm at hw
-          contradiction
-    case false =>
-      cases h
-      case if_false b' hs =>
-        rw[while_false]
-        exact hs
+    cases h
+    case if_true htrue hseq =>
+      cases hseq
+      case seq st₃ hc hw =>
+        apply Imp.CEval.while_true
+        exact htrue
+        exact hc
+        exact hw
+    case if_false hb hs =>
+      cases hs
+      case skip =>
+        apply Imp.CEval.while_false
+        exact hb
+
 
 theorem seq_assoc:
     ∀ (c₁ c₂ c₃ : Imp.Command), cequiv (.seq (.seq c₁ c₂) c₃) (.seq c₁ (.seq c₂ c₃)) := by
@@ -383,20 +385,24 @@ lemma h_eq (st: Imp.State) (x : String) : Imp.set st x (Imp.get st x) = st := by
         rw[if_neg h]
     }
 
-theorem identify_assignment : ∀ (x : String), cequiv (.assignvar x x) .skip := by
+theorem identity_assignment : ∀ (x : String), cequiv (.assign x (.var x)) .skip := by
   intro x
   rw[cequiv]
-  intros st st'
+  intro st₁ st₂
   constructor
-  .intro h
-   cases h
-   case assignvar =>
-     rw[h_eq]
-     apply Imp.CEval.skip
-  .intro h
-   cases h
-   case skip =>
-     nth_rewrite 2 [← h_eq st x]
-     apply Imp.CEval.assignvar
+  . intro h
+    cases h
+    case assign n ha =>
+      cases ha
+      case var =>
+        rw[h_eq]
+        apply Imp.CEval.skip
+  . intro h
+    cases h
+    case skip =>
+      nth_rewrite 2 [<-h_eq st₁ x]
+      apply Imp.CEval.assign
+      apply Imp.AEval.var at x
+      exact x
 
 end Equiv
