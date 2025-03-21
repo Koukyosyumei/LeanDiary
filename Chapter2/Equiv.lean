@@ -477,6 +477,32 @@ lemma refl_cequiv : ∀ (c : Imp.Command), cequiv c c := by
   . intro h
     exact h
 
+lemma sym_cequiv : ∀ (c₁ c₂ : Imp.Command), cequiv c₁ c₂ → cequiv c₂ c₁ := by
+  intros c₁ c₂ hc
+  rw[cequiv]
+  rw[cequiv] at hc
+  intros st₁ st₂
+  constructor
+  . intro h
+    rw[hc]
+    exact h
+  . intro h
+    rw[← hc]
+    exact h
 
+lemma trans_cequiv : ∀ (c₁ c₂ c₃), cequiv c₁ c₂ → cequiv c₂ c₃ → cequiv c₁ c₃ := by
+  intros c₁ c₂ c₃ h₁ h₂
+  rw[cequiv]
+  rw[cequiv] at h₁ h₂
+  intros st₁ st₂
+  constructor
+  . intro h
+    rw[← h₂]
+    rw[← h₁]
+    exact h
+  . intro h
+    rw[h₁]
+    rw[h₂]
+    exact h
 
 end Equiv
