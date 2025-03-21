@@ -15,9 +15,13 @@ import Chapter2.Imp
 
 namespace Equiv
 
-def aequiv (a₁ a₂: String) : Prop :=
+def aequiv (a₁ a₂: Imp.AExp) : Prop :=
   ∀ (st :Imp.State),
-  Imp.get st a₁ = Imp.get st a₂
+  Imp.AEval st a₁ = Imp.AEval st a₂
+
+def bequiv (b₁ b₂: Imp.BExp) : Prop :=
+  ∀ (st :Imp.State), ∀ (b : Bool),
+  Imp.BEval b₁ st b ↔ Imp.BEval b₂ st b
 
 /--
 Defines when two commands `c₁` and `c₂` are equivalent.
@@ -125,21 +129,27 @@ the `if` command behaves exactly like `c₁`.
   - A proof that `cequiv (.if_ b c₁ c₂) c₁` holds.
 -/
 theorem if_true:
-    ∀ (b: Bool), ∀ (c₁ c₂ : Imp.Command), b = true → cequiv (.if_ b c₁ c₂) c₁ := by
+    ∀ (b: Imp.BExp), ∀ (c₁ c₂ : Imp.Command), bequiv b Imp.BExp.btrue → cequiv (.if_ b c₁ c₂) c₁ := by
     intros b c₁ c₂ htrue
     rw[cequiv]
+    rw[bequiv] at htrue
     intros st st'
     constructor
     . intro h
       cases h
-      case if_true hc =>
+      case if_true hbeval hc =>
         exact hc
-      case if_false hfalse hc =>
-        contradiction
+      case if_false hbeval hc =>
+        -- .mp is a method used to apply modus ponens
+        -- For a bi-implication h : P ↔ Q, h.mp gives the forward direction P → Q
+        have h_contra := (htrue st false).mp hbeval
+        cases h_contra
     . intro h
-      rw[htrue]
       apply Imp.CEval.if_true
-      exact h
+      . have true_eval : Imp.BEval Imp.BExp.btrue st true := Imp.BEval.btrue st
+        have b_eval : Imp.BEval b st true := (htrue st true).mpr true_eval
+        exact b_eval
+      . exact h
 
 /--
 If the boolean condition `b` is `false`, then the `if` statement `if b then c₁ else c₂`
@@ -156,22 +166,25 @@ the `if` command behaves exactly like `c₂`.
   - A proof that `cequiv (.if_ b c₁ c₂) c₂` holds.
 -/
 theorem if_false:
-    ∀ (b: Bool), ∀ (c₁ c₂ : Imp.Command), b = false → cequiv (.if_ b c₁ c₂) c₂ := by
+    ∀ (b: Imp.BExp), ∀ (c₁ c₂ : Imp.Command), bequiv b Imp.BExp.bfalse → cequiv (.if_ b c₁ c₂) c₂ := by
     intros b c₁ c₂ hfalse
     rw[cequiv]
+    rw[bequiv] at hfalse
     intros st st'
     constructor
     . intro h
       cases h
-      case if_true hc =>
-        contradiction
-      case if_false _ hc =>
+      case if_true beval hc =>
+        have h_contra := (hfalse st true).mp beval
+        cases h_contra
+      case if_false beval hc =>
         exact hc
     . intro h
-      rw[hfalse]
       apply Imp.CEval.if_false
-      exact b
-      exact h
+      . have false_eval : Imp.BEval Imp.BExp.bfalse st false := Imp.BEval.bfalse st
+        have b_eval : Imp.BEval b st false := (hfalse st false).mpr false_eval
+        exact b_eval
+      . exact h
 
 /--
 Swapping the branches of an `if` statement with a negated condition does not change its behavior.
