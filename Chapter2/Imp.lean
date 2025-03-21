@@ -62,6 +62,44 @@ inductive Command: Type
 -- ** the only ways to construct proofs of the inductive relation are through its constructors.
 
 /--
+Inductive definition of arithmetic expressions (`AExp`).
+
+Constructors:
+- `const n`: a constant number
+- `var x`: a variable
+- `add`, `mul`, and `sub`: standard arithmetic operations.
+-/
+inductive AExp : Type
+| const (n : ℕ) : AExp
+| var (x : String) : AExp
+| add (a₁ a₂ : AExp) : AExp
+| mul (a₁ a₂ : AExp) : AExp
+| sub (a₁ a₂ : AExp) : AExp
+
+def AEval : State → AExp → ℕ
+| _, .const n   => n
+| st, .var x     => st x
+| st, .add a₁ a₂ => AEval st a₁ + AEval st a₂
+| st, .mul a₁ a₂ => AEval st a₁ * AEval st a₂
+| st, .sub a₁ a₂ => AEval st a₁ - AEval st a₂
+
+inductive BExp : Type
+| btrue  : BExp
+| bfalse : BExp
+| eq (a₁ a₂ : AExp) : BExp
+| le (a₁ a₂ : AExp) : BExp
+| not (b : BExp) : BExp
+| and (b₁ b₂ : BExp) : BExp
+
+def BEval : State → BExp → Bool
+| _, .btrue       => true
+| _, .bfalse      => false
+| st, .eq a1 a2    => AEval st a1 = AEval st a2
+| st, .le a1 a2    => AEval st a1 ≤ AEval st a2
+| st, .not b       => ¬(BEval st b)
+| st, .and b1 b2   => (BEval st b1) && (BEval st b2)
+
+/--
 Inductive definition of command evaluation (`CEval`).
 
 This inductive relation defines the operational semantics for commands, relating an
