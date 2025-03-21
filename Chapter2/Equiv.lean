@@ -2,21 +2,56 @@ import Mathlib.Data.Nat.Basic
 import Mathlib.Tactic
 import Chapter2.Imp
 
+/-!
+  This module defines equivalence between commands in a simple imperative language (`Imp`).
+  The language operates over a state modeled as a mapping from variable names to natural numbers
+  and includes an inductively defined evaluation relation (`CEval`) that specifies its operational
+  semantics.
+
+  The core notion of command equivalence (`cequiv`) ensures that two commands produce the same
+  final state given any initial state. Several fundamental equivalences are proven, demonstrating
+  the behavior of `skip` in sequences.
+-/
+
 namespace Equiv
 
+/--
+Defines when two commands `c₁` and `c₂` are equivalent.
+Two commands are equivalent if, for any initial state `st` and final state `st'`,
+executing `c₁` in `st` results in `st'` if and only if executing `c₂` in `st` results in `st'`.
+
+- Parameters:
+  - `c₁`, `c₂`: Commands to compare.
+- Returns:
+  - A `Prop` stating that `c₁` and `c₂` always produce the same final state for any initial state.
+-/
 def cequiv (c₁ c₂ : Imp.Command) : Prop :=
     ∀ (st st' : Imp.State),
     Imp.CEval c₁ st st' ↔ Imp.CEval c₂ st st'
 
--- Executing `skip` does not change the Imp.State
--- This directly follows from the `skip` rule
+/--
+Executing `skip` does not modify the state.
+This follows directly from the operational semantics of `skip`.
+
+- Parameters:
+  - `st`: The initial state.
+- Returns:
+  - A proof that evaluating `skip` in `st` results in `st` unchanged.
+-/
 theorem skip_preserves_state:
   ∀ (st: Imp.State), Imp.CEval Imp.Command.skip st st := by
   apply Imp.CEval.skip
 
--- Proving a Imp.Command equivalence
+/--
+For any command `c`, the sequence `(skip; c)` is equivalent to `c`.
 
--- ∀c, (skip; c) is equivalent to c
+This theorem shows that placing `skip` before `c` has no effect.
+
+- Parameters:
+  - `c`: A command in the Imp language.
+- Returns:
+  - A proof that `cequiv (.seq .skip c) c` holds.
+-/
 theorem skip_left:
   ∀ (c: Imp.Command), cequiv (.seq .skip c) c := by
   intro c
@@ -44,6 +79,16 @@ theorem skip_left:
     . apply Imp.CEval.skip
     . exact h
 
+/--
+For any command `c`, the sequence `(c; skip)` is equivalent to `c`.
+
+This theorem shows that placing `skip` after `c` has no effect.
+
+- Parameters:
+  - `c`: A command in the Imp language.
+- Returns:
+  - A proof that `cequiv (.seq c .skip) c` holds.
+-/
 theorem skip_right:
     ∀ (c: Imp.Command), cequiv (.seq c .skip) c := by
     intro c
@@ -61,6 +106,20 @@ theorem skip_right:
       . exact h
       . apply Imp.CEval.skip
 
+/--
+If the boolean condition `b` is `true`, then the `if` statement `if b then c₁ else c₂`
+is equivalent to executing `c₁` alone.
+
+This theorem formally proves that when the condition evaluates to `true`,
+the `if` command behaves exactly like `c₁`.
+
+- Parameters:
+  - `b`: A boolean condition.
+  - `c₁`, `c₂`: Commands in the Imp language.
+  - `htrue`: A proof that `b = true`.
+- Returns:
+  - A proof that `cequiv (.if_ b c₁ c₂) c₁` holds.
+-/
 theorem if_true:
     ∀ (b: Bool), ∀ (c₁ c₂ : Imp.Command), b = true → cequiv (.if_ b c₁ c₂) c₁ := by
     intros b c₁ c₂ htrue
@@ -78,6 +137,20 @@ theorem if_true:
       apply Imp.CEval.if_true
       exact h
 
+/--
+If the boolean condition `b` is `false`, then the `if` statement `if b then c₁ else c₂`
+is equivalent to executing `c₂` alone.
+
+This theorem formally proves that when the condition evaluates to `false`,
+the `if` command behaves exactly like `c₂`.
+
+- Parameters:
+  - `b`: A boolean condition.
+  - `c₁`, `c₂`: Commands in the Imp language.
+  - `hfalse`: A proof that `b = false`.
+- Returns:
+  - A proof that `cequiv (.if_ b c₁ c₂) c₂` holds.
+-/
 theorem if_false:
     ∀ (b: Bool), ∀ (c₁ c₂ : Imp.Command), b = false → cequiv (.if_ b c₁ c₂) c₂ := by
     intros b c₁ c₂ hfalse
@@ -96,7 +169,18 @@ theorem if_false:
       exact b
       exact h
 
+/--
+Swapping the branches of an `if` statement with a negated condition does not change its behavior.
 
+This theorem proves that `if b then c₁ else c₂` is equivalent to `if ¬b then c₂ else c₁`.
+Since `b` and `¬b` are always complementary, the execution of the two commands remains identical.
+
+- Parameters:
+  - `b`: A boolean condition.
+  - `c₁`, `c₂`: Commands in the Imp language.
+- Returns:
+  - A proof that `cequiv (.if_ b c₁ c₂) (.if_ (¬b) c₂ c₁)` holds.
+-/
 theorem swap_if_branches:
     ∀ (b : Bool), ∀ (c₁ c₂ : Imp.Command), cequiv (.if_ b c₁ c₂) (.if_ (¬b) c₂ c₁) := by
     intros b c₁ c₂
@@ -128,6 +212,18 @@ theorem swap_if_branches:
         exact h
         repeat rfl
 
+/--
+A `while` loop with a `false` condition is equivalent to `skip`.
+
+Since the loop condition is always false, the loop body never executes,
+and execution proceeds as if no loop were present, which is exactly
+the behavior of `skip`.
+
+- Parameters:
+  - `c`: A command representing the loop body.
+- Returns:
+  - A proof that `cequiv (.while false c) .skip` holds.
+-/
 theorem while_false:
     ∀ (c : Imp.Command), cequiv (.while false c) .skip := by
     intros c₁
