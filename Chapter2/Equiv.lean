@@ -452,4 +452,19 @@ lemma sym_aequiv : ∀ (a₁ a₂ : Imp.AExp), aequiv a₁ a₂ → aequiv a₂ 
     rw[← ha]
     exact h
 
+lemma trans_aequiv : ∀ (a₁ a₂ a₃ : Imp.AExp), aequiv a₁ a₂ → aequiv a₂ a₃ → aequiv a₁ a₃ := by
+  intros a₁ a₂ a₃ h₁ h₂
+  rw[aequiv] at h₁ h₂
+  rw[aequiv]
+  intros st n
+  constructor
+  . intro h
+    rw[← h₂]
+    rw[← h₁]
+    exact h
+  . intro h
+    rw[h₁]
+    rw[h₂]
+    exact h
+
 end Equiv
