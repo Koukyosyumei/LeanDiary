@@ -15,6 +15,10 @@ import Chapter2.Imp
 
 namespace Equiv
 
+def aequiv (a₁ a₂: String) : Prop :=
+  ∀ (st :Imp.State),
+  Imp.get st a₁ = Imp.get st a₂
+
 /--
 Defines when two commands `c₁` and `c₂` are equivalent.
 Two commands are equivalent if, for any initial state `st` and final state `st'`,
