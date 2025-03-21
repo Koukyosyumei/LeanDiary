@@ -400,9 +400,33 @@ theorem identity_assignment : ∀ (x : String), cequiv (.assign x (.var x)) .ski
   . intro h
     cases h
     case skip =>
-      nth_rewrite 2 [<-h_eq st₁ x]
+      nth_rewrite 2 [← h_eq st₁ x]
       apply Imp.CEval.assign
       apply Imp.AEval.var at x
       exact x
+
+theorem assign_aequiv : ∀ (x : String) (a : Imp.AExp), aequiv (.var x) a → cequiv .skip (.assign x a) := by
+  intros x a ha
+  rw[cequiv]
+  intros st₁ st₂
+  constructor
+  . intro h
+    cases h
+    case skip =>
+      nth_rewrite 2 [← h_eq st₁ x]
+      apply Imp.CEval.assign
+      have hb : ∀ (n : ℕ), Imp.AEval st₁ (Imp.AExp.var x) n ↔ Imp.AEval st₁ a n := by
+        {
+          apply ha
+        }
+      rw[← hb]
+      apply Imp.AEval.var
+  . intro h
+    cases h
+    case assign hae =>
+      rw[← identity_assignment]
+      apply Imp.CEval.assign
+      rw[← ha] at hae
+      exact hae
 
 end Equiv
