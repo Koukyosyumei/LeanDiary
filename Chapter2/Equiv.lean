@@ -505,4 +505,23 @@ lemma trans_cequiv : ∀ (c₁ c₂ c₃), cequiv c₁ c₂ → cequiv c₂ c₃
     rw[h₂]
     exact h
 
+theorem cassign_congruence : ∀ (x : String), ∀ (a₁ a₂ : Imp.AExp),
+  aequiv a₁ a₂ → cequiv (.assign x a₁) (.assign x a₂) := by
+  intros x a₁ a₂ ha
+  rw[cequiv]
+  intros st₁ st₂
+  constructor
+  . intro h
+    cases h
+    case assign n heval =>
+      apply Imp.CEval.assign
+      rw[ha] at heval
+      exact heval
+  . intro h
+    cases h
+    case assign n heval =>
+      apply Imp.CEval.assign
+      rw[ha]
+      exact heval
+
 end Equiv
