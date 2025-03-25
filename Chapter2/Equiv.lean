@@ -467,6 +467,19 @@ lemma trans_aequiv : ∀ (a₁ a₂ a₃ : Imp.AExp), aequiv a₁ a₂ → aequi
     rw[h₂]
     exact h
 
+lemma sym_bequiv : ∀ (b₁ b₂ : Imp.BExp), bequiv b₁ b₂ → bequiv b₂ b₁ := by
+  intros b₁ b₂ hb
+  rw[bequiv]
+  rw[bequiv] at hb
+  intros st b
+  constructor
+  . intro h
+    rw[hb]
+    exact h
+  . intro h
+    rw[← hb]
+    exact h
+
 lemma refl_cequiv : ∀ (c : Imp.Command), cequiv c c := by
   intros c
   rw[cequiv]
@@ -523,5 +536,31 @@ theorem cassign_congruence : ∀ (x : String), ∀ (a₁ a₂ : Imp.AExp),
       apply Imp.CEval.assign
       rw[ha]
       exact heval
+
+theorem cwhile_congruence: ∀ (b₁ b₂ : Imp.BExp), ∀ (c₁ c₂ : Imp.Command),
+  bequiv b₁ b₂ → cequiv c₁ c₂ → cequiv (.while b₁ c₁) (.while b₂ c₂) := by
+    intros b₁ b₂ c₁ c₂ hb hc
+    rw[cequiv]
+    rw[bequiv] at hb
+    intros st₁ st₂
+    constructor
+    . intro h
+      cases h
+      case while_false hbfalse =>
+        apply Imp.CEval.while_false
+        rw[hb] at hbfalse
+        exact hbfalse
+      case while_true st' hbtrue hc₂ hw =>
+        apply Imp.CEval.while_true
+        . rw[← hb]
+          exact hbtrue
+        . rw[← hc]
+          exact hc₂
+        . sorry
+    . intro h
+      sorry
+
+
+
 
 end Equiv
