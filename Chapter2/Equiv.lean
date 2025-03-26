@@ -645,4 +645,102 @@ def fold_constants_aexp : Imp.AExp → Imp.AExp
     | Imp.AExp.const n₁, Imp.AExp.const n₂ => Imp.AExp.const (n₁ * n₂)
     | a₁', a₂' => Imp.AExp.mul a₁' a₂'
 
+def fold_constants_bexp : Imp.BExp → Imp.BExp
+  | Imp.BExp.btrue => Imp.BExp.btrue
+  | Imp.BExp.bfalse => Imp.BExp.bfalse
+  | Imp.BExp.eq a₁ a₂ =>
+    match fold_constants_aexp a₁, fold_constants_aexp a₂ with
+    | .const n₁, .const n₂ => if n₁ == n₂ then .btrue else .bfalse
+    | a₁', a₂' => .eq a₁' a₂'
+  | Imp.BExp.le a₁ a₂ =>
+    match fold_constants_aexp a₁, fold_constants_aexp a₂ with
+    | .const n₁, .const n₂ => if n₁ <= n₂ then .btrue else .bfalse
+    | a₁', a₂' => .le a₁' a₂'
+  | Imp.BExp.not b₁ =>
+    match fold_constants_bexp b₁ with
+    | .btrue => .bfalse
+    | .bfalse => .btrue
+    | b₁' => .not b₁'
+  | Imp.BExp.and b₁ b₂ =>
+    match fold_constants_bexp b₁, fold_constants_bexp b₂ with
+    | .btrue, .btrue => .btrue
+    | .btrue, .bfalse => .bfalse
+    | .bfalse, .btrue => .bfalse
+    | .bfalse, .bfalse => .bfalse
+    | b₁', b₂' => .and b₁' b₂'
+
+def fold_constants_com : Imp.Command → Imp.Command
+  | .skip => .skip
+  | .assign x a => .assign x (fold_constants_aexp a)
+  | .seq c₁ c₂ => .seq (fold_constants_com c₁) (fold_constants_com c₂)
+  | .if_ b c₁ c₂ =>
+    match fold_constants_bexp b with
+    | .btrue => fold_constants_com c₁
+    | .bfalse => fold_constants_com c₂
+    | b' => .if_ b' (fold_constants_com c₁) (fold_constants_com c₂)
+  | .while b c =>
+    match fold_constants_bexp b with
+    | .btrue => .while .btrue .skip
+    | .bfalse => .skip
+    | b' => .while b' (fold_constants_com c)
+
+theorem fold_constants_aexp_sound : atrans_sound fold_constants_aexp := by
+unfold atrans_sound
+intros a
+unfold aequiv
+intros st n
+constructor
+. intro h
+  induction a generalizing st n with
+  | const n' =>
+    cases h
+    simp [fold_constants_aexp]
+    exact Imp.AEval.const st n'
+  | var x =>
+    cases h
+    simp [fold_constants_aexp]
+    exact Imp.AEval.var st x
+  | add a₁ a₂ ih₁ ih₂ =>
+    cases h
+    case mp.add.add n₁ n₂ ha₁ ha₂ =>
+    apply ih₁ at ha₁
+    apply ih₂ at ha₂
+    have ha : aequiv (.add (fold_constants_aexp a₁) (fold_constants_aexp a₂)) (fold_constants_aexp (.add a₁ a₂)) := by
+      {
+        rw[aequiv]
+        intro st n
+        constructor
+        . intro h
+          <;> cases h₁ : fold_constants_aexp a₁ <;> cases h₂ : fold_constants_aexp a₂
+          case mp.const.const st₁ n₃ n₄ =>
+            unfold fold_constants_aexp
+            rw[h₁] at h
+            rw[h₂] at h
+            simp_all
+            cases h
+            case add n₁' n₂' ha₁' ha₂' =>
+              cases ha₁'
+              cases ha₂'
+              apply Imp.AEval.const
+          case mp.const.var =>
+            unfold fold_constants_aexp
+            rw[h₁] at h
+            rw[h₂] at h
+            simp_all
+          case mp.const.add =>
+            unfold fold_constants_aexp
+            rw[h₁] at h
+            rw[h₂] at h
+            simp_all
+      }
+    rw[aequiv] at ha
+    rw[← ha]
+    apply Imp.AEval.add
+    exact ha₁
+    exact ha₂
+  | mul a₁ a₂ ih₁ ih₂ => sorry
+  | sub a₁ a₂ ih₁ ih₂ => sorry
+. intro h
+  sorry
+
 end Equiv
