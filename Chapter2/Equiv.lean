@@ -629,4 +629,20 @@ def btrans_sound (btrans : Imp.BExp → Imp.BExp) : Prop :=
 def ctrans_sound (ctrans : Imp.Command → Imp.Command) : Prop :=
   ∀ (c :Imp.Command), cequiv c (ctrans c)
 
+def fold_constants_aexp : Imp.AExp → Imp.AExp
+  | Imp.AExp.const n => Imp.AExp.const n
+  | Imp.AExp.var x => Imp.AExp.var x
+  | Imp.AExp.add a₁ a₂ =>
+    match fold_constants_aexp a₁, fold_constants_aexp a₂ with
+    | Imp.AExp.const n₁, Imp.AExp.const n₂ => Imp.AExp.const (n₁ + n₂)
+    | a₁', a₂' => Imp.AExp.add a₁' a₂'
+  | Imp.AExp.sub a₁ a₂ =>
+    match fold_constants_aexp a₁, fold_constants_aexp a₂ with
+    | Imp.AExp.const n₁, Imp.AExp.const n₂ => Imp.AExp.const (n₁ - n₂)
+    | a₁', a₂' => Imp.AExp.sub a₁' a₂'
+  | Imp.AExp.mul a₁ a₂ =>
+    match fold_constants_aexp a₁, fold_constants_aexp a₂ with
+    | Imp.AExp.const n₁, Imp.AExp.const n₂ => Imp.AExp.const (n₁ * n₂)
+    | a₁', a₂' => Imp.AExp.mul a₁' a₂'
+
 end Equiv
