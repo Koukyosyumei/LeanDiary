@@ -620,4 +620,13 @@ theorem cif_congruence : ∀ (b b' : Imp.BExp) (c₁ c₁' c₂ c₂' : Imp.Comm
       rw[← hc₂] at hc
       exact hc
 
+def atrans_sound (atrans : Imp.AExp → Imp.AExp) : Prop :=
+  ∀ (a :Imp.AExp), aequiv a (atrans a)
+
+def btrans_sound (btrans : Imp.BExp → Imp.BExp) : Prop :=
+  ∀ (b :Imp.BExp), bequiv b (btrans b)
+
+def ctrans_sound (ctrans : Imp.Command → Imp.Command) : Prop :=
+  ∀ (c :Imp.Command), cequiv c (ctrans c)
+
 end Equiv
