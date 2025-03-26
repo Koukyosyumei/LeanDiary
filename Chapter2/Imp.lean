@@ -76,7 +76,7 @@ inductive BEval : State → BExp → Bool → Prop
 | btrue (st : State) : BEval st .btrue true
 | bfalse (st : State) : BEval st .bfalse false
 | eq (st : State) (a₁ a₂ : AExp) (n₁ n₂ : ℕ) : (AEval st a₁ n₁) → (AEval st a₂ n₂) → BEval st (.eq a₁ a₂) (n₁ = n₂)
-| le (st : State) (a₁ a₂ : AExp) (n₁ n₂ : ℕ) : (AEval st a₁ n₁) → (AEval st a₂ n₂) → BEval st (.eq a₁ a₂) (n₁ ≤ n₂)
+| le (st : State) (a₁ a₂ : AExp) (n₁ n₂ : ℕ) : (AEval st a₁ n₁) → (AEval st a₂ n₂) → BEval st (.le a₁ a₂) (n₁ ≤ n₂)
 | not (st : State) (bexp : BExp) (b : Bool) : BEval st bexp b → BEval st (.not bexp) (¬b)
 | and (st : State) (bexp₁ bexp₂ : BExp) (b₁ b₂ : Bool) : (BEval st bexp₁ b₁) → (BEval st bexp₂ b₂) → BEval st (.and bexp₁ bexp₂) (b₁ && b₂)
 

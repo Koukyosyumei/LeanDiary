@@ -927,10 +927,41 @@ theorem fold_constants_bexp_sound: btrans_sound fold_constants_bexp := by
    | bfalse =>
      cases h
      apply Imp.BEval.bfalse
+   | eq a₁ a₂ =>
+     cases h
+     case mp.eq.eq n₁ n₂ ha₁ ha₂ =>
+      have ha : bequiv (fold_constants_bexp (.eq a₁ a₂)) (.eq (fold_constants_aexp a₁) (fold_constants_aexp a₂)) := by
+        {
+          rw[bequiv]
+          intros st₁ b₁
+          constructor
+          . intro hb
+            <;> cases h₁ : fold_constants_aexp a₁
+            <;> cases h₂ : fold_constants_aexp a₂
+            case mp.const.const n₃ n₄ =>
+              unfold fold_constants_bexp at hb
+              rw [h₁, h₂] at hb
+              simp_all
+              have hbe : bequiv (if n₃ = n₄ then Imp.BExp.btrue else Imp.BExp.bfalse) (.eq (.const n₃) (.const n₄)) := by {
+                sorry
+              }
+              rw[← hbe]
+              exact hb
+            all_goals
+              unfold fold_constants_bexp at hb
+              rw [h₁, h₂] at hb
+              simp_all
+          . sorry
+        }
+      rw[ha]
+      apply Imp.BEval.eq
+      rw[fold_constants_aexp_sound] at ha₁
+      exact ha₁
+      rw[fold_constants_aexp_sound] at ha₂
+      exact ha₂
    | not b ih => sorry
    | le a₁ a₂ => sorry
    | and b₁ b₂ b₁_ih b₂_ih => sorry
-   | eq a₁ a₂ => sorry
   . intro h
     sorry
 
