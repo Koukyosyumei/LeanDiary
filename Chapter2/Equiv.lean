@@ -541,7 +541,7 @@ theorem cwhile_congruence: ∀ (b₁ b₂ : Imp.BExp), ∀ (c₁ c₂ : Imp.Comm
   bequiv b₁ b₂ → cequiv c₁ c₂ → cequiv (.while b₁ c₁) (.while b₂ c₂) := by
     intros b₁ b₂ c₁ c₂ hb hc
     rw[cequiv]
-    rw[bequiv] at hb
+    -- rw[bequiv] at hb
     intros st₁ st₂
     constructor
     . intro h
@@ -556,11 +556,68 @@ theorem cwhile_congruence: ∀ (b₁ b₂ : Imp.BExp), ∀ (c₁ c₂ : Imp.Comm
           exact hbtrue
         . rw[← hc]
           exact hc₂
-        . sorry
+        .sorry
     . intro h
       sorry
 
+theorem cseq_congruence : ∀ (c₁ c₁' c₂ c₂': Imp.Command),
+  cequiv c₁ c₁' → cequiv c₂ c₂' → cequiv (.seq c₁ c₂) (.seq c₁' c₂') := by
+  intros c₁ c₁' c₂ c₂' hc₁ hc₂
+  rw[cequiv]
+  --rw[cequiv] at hc₁
+  intro st₁ st₂
+  constructor
+  .intro hc
+   cases hc
+   case mp.seq st₃ hc' hc'' =>
+    rw[hc₁] at hc'
+    rw[hc₂] at hc''
+    apply Imp.CEval.seq
+    . exact hc'
+    . exact hc''
+  .intro hc
+   cases hc
+   case mpr.seq st₃ hc' hc'' =>
+    rw[← hc₁] at hc'
+    rw[← hc₂] at hc''
+    apply Imp.CEval.seq
+    . exact hc'
+    . exact hc''
 
-
+theorem cif_congruence : ∀ (b b' : Imp.BExp) (c₁ c₁' c₂ c₂' : Imp.Command),
+  bequiv b b' → cequiv c₁ c₁' → cequiv c₂ c₂' →
+  cequiv (.if_ b c₁ c₂) (.if_ b' c₁' c₂') := by
+  intros b b' c₁ c₁' c₂ c₂' hb hc₁ hc₂
+  rw[cequiv]
+  intro st st'
+  constructor
+  . intro h
+    cases h
+    case mp.if_true hbtrue hc =>
+      rw[hb] at hbtrue
+      apply Imp.CEval.if_true
+      exact hbtrue
+      rw[hc₁] at hc
+      exact hc
+    case mp.if_false hbfalse hc =>
+      rw[hb] at hbfalse
+      apply Imp.CEval.if_false
+      exact hbfalse
+      rw[hc₂] at hc
+      exact hc
+  . intro h
+    cases h
+    case mpr.if_true hbtrue hc =>
+      rw[← hb] at hbtrue
+      apply Imp.CEval.if_true
+      exact hbtrue
+      rw[← hc₁] at hc
+      exact hc
+    case mpr.if_false hbfalse hc =>
+      rw[← hb] at hbfalse
+      apply Imp.CEval.if_false
+      exact hbfalse
+      rw[← hc₂] at hc
+      exact hc
 
 end Equiv
