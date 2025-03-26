@@ -839,6 +839,78 @@ constructor
     exact ha₁
     exact ha₂
 . intro h
-  sorry
+  induction a generalizing st n with
+  | const n' =>
+    unfold fold_constants_aexp at h
+    exact h
+  | var x =>
+    unfold fold_constants_aexp at h
+    exact h
+  | add a₁ a₂ a₁_ih a₂_ih =>
+    unfold fold_constants_aexp at h
+    <;> cases h₁ : fold_constants_aexp a₁
+    <;> cases h₂ : fold_constants_aexp a₂
+    case mpr.add.const.const n₁ n₂ =>
+      simp_all
+      cases h
+      case const =>
+        apply Imp.AEval.add
+        apply a₁_ih
+        apply Imp.AEval.const
+        apply a₂_ih
+        apply Imp.AEval.const
+    all_goals
+      simp_all
+      cases h
+      case add n₃ n₄ ha₁ ha₂ =>
+        apply a₁_ih at ha₁
+        apply a₂_ih at ha₂
+        apply Imp.AEval.add
+        exact ha₁
+        exact ha₂
+  | mul a₁ a₂ a₁_ih a₂_ih =>
+    unfold fold_constants_aexp at h
+    <;> cases h₁ : fold_constants_aexp a₁
+    <;> cases h₂ : fold_constants_aexp a₂
+    case mpr.mul.const.const n₁ n₂ =>
+      simp_all
+      cases h
+      case const =>
+        apply Imp.AEval.mul
+        apply a₁_ih
+        apply Imp.AEval.const
+        apply a₂_ih
+        apply Imp.AEval.const
+    all_goals
+      simp_all
+      cases h
+      case mul n₃ n₄ ha₁ ha₂ =>
+        apply a₁_ih at ha₁
+        apply a₂_ih at ha₂
+        apply Imp.AEval.mul
+        exact ha₁
+        exact ha₂
+  | sub a₁ a₂ a₁_ih a₂_ih =>
+    unfold fold_constants_aexp at h
+    <;> cases h₁ : fold_constants_aexp a₁
+    <;> cases h₂ : fold_constants_aexp a₂
+    case mpr.sub.const.const n₁ n₂ =>
+      simp_all
+      cases h
+      case const =>
+        apply Imp.AEval.sub
+        apply a₁_ih
+        apply Imp.AEval.const
+        apply a₂_ih
+        apply Imp.AEval.const
+    all_goals
+      simp_all
+      cases h
+      case sub n₃ n₄ ha₁ ha₂ =>
+        apply a₁_ih at ha₁
+        apply a₂_ih at ha₂
+        apply Imp.AEval.sub
+        exact ha₁
+        exact ha₂
 
 end Equiv
