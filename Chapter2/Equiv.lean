@@ -913,4 +913,44 @@ constructor
         exact ha₁
         exact ha₂
 
+theorem fold_constants_bexp_sound: btrans_sound fold_constants_bexp := by
+  unfold btrans_sound
+  intros bexp
+  unfold bequiv
+  intros st b
+  constructor
+  .intro h
+   induction bexp generalizing st b with
+   | btrue =>
+     cases h
+     apply Imp.BEval.btrue
+   | bfalse =>
+     cases h
+     apply Imp.BEval.bfalse
+   | not b ih => sorry
+   | le a₁ a₂ => sorry
+   | and b₁ b₂ b₁_ih b₂_ih => sorry
+   | eq a₁ a₂ => sorry
+  . intro h
+    sorry
+
+theorem fold_constants_com_sound : ctrans_sound fold_constants_com := by
+  unfold ctrans_sound
+  intros c
+  induction c
+  case skip =>
+    unfold fold_constants_com
+    apply refl_cequiv
+  case assign =>
+    apply cassign_congruence
+    apply fold_constants_aexp_sound
+  case seq =>
+    apply cseq_congruence
+    assumption
+    assumption
+  case if_ b c₁ c₂ hc₁ hc₂ =>
+    unfold fold_constants_com
+    sorry
+  case _ => sorry
+
 end Equiv
