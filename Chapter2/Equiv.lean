@@ -711,26 +711,34 @@ constructor
         intro st n
         constructor
         . intro h
-          <;> cases h₁ : fold_constants_aexp a₁ <;> cases h₂ : fold_constants_aexp a₂
+          <;> cases h₁ : fold_constants_aexp a₁
+          <;> cases h₂ : fold_constants_aexp a₂
           case mp.const.const st₁ n₃ n₄ =>
             unfold fold_constants_aexp
-            rw[h₁] at h
-            rw[h₂] at h
+            rw [h₁, h₂] at h
             simp_all
             cases h
             case add n₁' n₂' ha₁' ha₂' =>
               cases ha₁'
               cases ha₂'
               apply Imp.AEval.const
-          case mp.const.var =>
+          all_goals
             unfold fold_constants_aexp
-            rw[h₁] at h
-            rw[h₂] at h
+            rw [h₁, h₂] at h
             simp_all
-          case mp.const.add =>
-            unfold fold_constants_aexp
-            rw[h₁] at h
-            rw[h₂] at h
+        . intro h
+          <;> cases h₁ : fold_constants_aexp a₁
+          <;> cases h₂ : fold_constants_aexp a₂
+          case mpr.const.const st₁ n₃ n₄ =>
+            unfold fold_constants_aexp at h
+            simp_all
+            cases h
+            case const =>
+              apply Imp.AEval.add
+              apply Imp.AEval.const
+              apply Imp.AEval.const
+          all_goals
+            unfold fold_constants_aexp at h
             simp_all
       }
     rw[aequiv] at ha
@@ -738,8 +746,98 @@ constructor
     apply Imp.AEval.add
     exact ha₁
     exact ha₂
-  | mul a₁ a₂ ih₁ ih₂ => sorry
-  | sub a₁ a₂ ih₁ ih₂ => sorry
+  | mul a₁ a₂ ih₁ ih₂ =>
+    cases h
+    case mp.mul.mul n₁ n₂ ha₁ ha₂ =>
+    apply ih₁ at ha₁
+    apply ih₂ at ha₂
+    have ha : aequiv (.mul (fold_constants_aexp a₁) (fold_constants_aexp a₂)) (fold_constants_aexp (.mul a₁ a₂)) := by
+      {
+        rw[aequiv]
+        intro st n
+        constructor
+        . intro h
+          <;> cases h₁ : fold_constants_aexp a₁
+          <;> cases h₂ : fold_constants_aexp a₂
+          case mp.const.const st₁ n₃ n₄ =>
+            unfold fold_constants_aexp
+            rw [h₁, h₂] at h
+            simp_all
+            cases h
+            case mul n₁' n₂' ha₁' ha₂' =>
+              cases ha₁'
+              cases ha₂'
+              apply Imp.AEval.const
+          all_goals
+            unfold fold_constants_aexp
+            rw [h₁, h₂] at h
+            simp_all
+        . intro h
+          <;> cases h₁ : fold_constants_aexp a₁
+          <;> cases h₂ : fold_constants_aexp a₂
+          case mpr.const.const st₁ n₃ n₄ =>
+            unfold fold_constants_aexp at h
+            simp_all
+            cases h
+            case const =>
+              apply Imp.AEval.mul
+              apply Imp.AEval.const
+              apply Imp.AEval.const
+          all_goals
+            unfold fold_constants_aexp at h
+            simp_all
+      }
+    rw[aequiv] at ha
+    rw[← ha]
+    apply Imp.AEval.mul
+    exact ha₁
+    exact ha₂
+  | sub a₁ a₂ ih₁ ih₂ =>
+    cases h
+    case mp.sub.sub n₁ n₂ ha₁ ha₂ =>
+    apply ih₁ at ha₁
+    apply ih₂ at ha₂
+    have ha : aequiv (.sub (fold_constants_aexp a₁) (fold_constants_aexp a₂)) (fold_constants_aexp (.sub a₁ a₂)) := by
+      {
+        rw[aequiv]
+        intro st n
+        constructor
+        . intro h
+          <;> cases h₁ : fold_constants_aexp a₁
+          <;> cases h₂ : fold_constants_aexp a₂
+          case mp.const.const st₁ n₃ n₄ =>
+            unfold fold_constants_aexp
+            rw [h₁, h₂] at h
+            simp_all
+            cases h
+            case sub n₁' n₂' ha₁' ha₂' =>
+              cases ha₁'
+              cases ha₂'
+              apply Imp.AEval.const
+          all_goals
+            unfold fold_constants_aexp
+            rw [h₁, h₂] at h
+            simp_all
+        . intro h
+          <;> cases h₁ : fold_constants_aexp a₁
+          <;> cases h₂ : fold_constants_aexp a₂
+          case mpr.const.const st₁ n₃ n₄ =>
+            unfold fold_constants_aexp at h
+            simp_all
+            cases h
+            case const =>
+              apply Imp.AEval.sub
+              apply Imp.AEval.const
+              apply Imp.AEval.const
+          all_goals
+            unfold fold_constants_aexp at h
+            simp_all
+      }
+    rw[aequiv] at ha
+    rw[← ha]
+    apply Imp.AEval.sub
+    exact ha₁
+    exact ha₂
 . intro h
   sorry
 
