@@ -956,7 +956,10 @@ theorem fold_constants_bexp_sound: btrans_sound fold_constants_bexp := by
                         case mp.eq n₃ n₄ ha₁ ha₂ =>
                           have hn : n₃ = n₄ := by
                             {
-                              sorry
+                              cases ha₁
+                              case const =>
+                                cases ha₂
+                                rfl
                             }
                           simp_all
                           apply Imp.BEval.btrue
