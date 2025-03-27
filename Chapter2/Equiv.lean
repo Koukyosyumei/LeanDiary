@@ -966,7 +966,17 @@ theorem fold_constants_bexp_sound: btrans_sound fold_constants_bexp := by
                       . intro h
                         cases h
                         case mpr.btrue =>
-                          sorry
+                          have hbi : Imp.AEval st (.const n₄) n₄ := by
+                            {
+                              apply Imp.AEval.const
+                            }
+                          have ht : Imp.BEval st (.eq (.const n₄) (.const n₄)) (n₄ = n₄) := by
+                            {
+                              apply Imp.BEval.eq
+                              exact hbi
+                              exact hbi
+                            }
+                          simp_all
                     }
                   rw[hdt]
                   apply Imp.BEval.btrue
