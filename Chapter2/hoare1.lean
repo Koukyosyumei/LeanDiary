@@ -63,7 +63,7 @@ theorem hoare_seq : ∀ (p q r : Assertion), ∀ (c₁ c₂ : Imp.Command),
 def assertion_sub (p : Assertion) (x : String) (a : Imp.AExp) : Assertion :=
   fun st => ∀ n, Imp.AEval st a n → p (Imp.set st x n)
 
-notation p " [" x " → " a "]" => assertion_sub p x a
+notation p " [" x " ↦ " a "]" => assertion_sub p x a
 
 example (x : String):
   assertion_sub (fun st => st x ≤ 5) x (Imp.AExp.const 3) <<->> (fun _ => 3 ≤ 5) := by

@@ -130,4 +130,9 @@ inductive CEval : State → Command  -> State -> Prop
 | while_true (st st' st'' : State) (b : BExp) (c : Command) :
     BEval st b true → CEval st c st' → CEval st' (.while b c) st'' → CEval st (.while b c) st''
 
+notation st " ⊢ " a " ⇓ " n => AEval st a n
+notation st " ⊢ " b " ⇓ " bool => BEval st b bool
+notation st " ⊢ " c " ⇓ " st' => CEval st c st'
+notation st "[" x " ↦ " v "]" => set st x v
+
 end Imp
