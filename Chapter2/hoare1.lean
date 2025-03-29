@@ -127,4 +127,13 @@ example (x: String):
   exists assertion_sub (fun st => st x ≤ 10) x (.mul (.const 2) (.var x))
   apply hoare_asgn
 
+example (x: String):
+  ∃ (p : Assertion), valid_hoare_triple p (.assign x (.const 3)) (fun st => 0 ≤ (st x) ∧ (st x) ≤ 5) := by
+  exists assertion_sub (fun st => 0 ≤ st x ∧ st x ≤ 5) x (Imp.AExp.const 3)
+  apply hoare_asgn
+
+theorem hoare_asgn_wrong (x : String) : ∃ (a : Imp.AExp),
+  ¬ valid_hoare_triple (fun st => true) (.assign x a) (fun st => ∀ (n : ℕ), (st x = n) ↔ (Imp.AEval st a n)) := by
+  sorry
+
 end Hoare1
