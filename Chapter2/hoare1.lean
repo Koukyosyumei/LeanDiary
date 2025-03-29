@@ -122,4 +122,9 @@ example (x : String):
   valid_hoare_triple (assertion_sub (fun st => st x < 5) x (.add (.var x) (.const 1))) (.assign x (.add (.var x) (.const 1))) (fun st => st x < 5) := by
   apply hoare_asgn
 
+example (x: String):
+  ∃ (p : Assertion), valid_hoare_triple p (.assign x (.mul (.const 2) (.var x))) (fun st => st x ≤ 10) := by
+  exists assertion_sub (fun st => st x ≤ 10) x (.mul (.const 2) (.var x))
+  apply hoare_asgn
+
 end Hoare1
