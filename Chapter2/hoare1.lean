@@ -66,7 +66,7 @@ def assertion_sub (p : Assertion) (x : String) (a : Imp.AExp) : Assertion :=
 notation p " [" x " → " a "]" => assertion_sub p x a
 
 example (x : String):
-  assertion_sub (fun st => st x ≤ 5) x (Imp.AExp.const 3) <<->> (fun st => 3 ≤ 5) := by
+  assertion_sub (fun st => st x ≤ 5) x (Imp.AExp.const 3) <<->> (fun _ => 3 ≤ 5) := by
   unfold assert_iff
   intros st
   constructor
@@ -107,8 +107,19 @@ example (x : String):
           unfold Imp.get
           exact ha
 
+theorem hoare_asgn : ∀ (q : Assertion) (x : String) (a : Imp.AExp),
+  valid_hoare_triple (assertion_sub q x a) (Imp.Command.assign x a) q := by
+  intros q x a
+  unfold valid_hoare_triple
+  intros st₁ st₂ ha hb
+  unfold assertion_sub at hb
+  cases ha
+  case assign n₁ ha₁ =>
+    apply hb
+    exact ha₁
 
-
-
+example (x : String):
+  valid_hoare_triple (assertion_sub (fun st => st x < 5) x (.add (.var x) (.const 1))) (.assign x (.add (.var x) (.const 1))) (fun st => st x < 5) := by
+  apply hoare_asgn
 
 end Hoare1
