@@ -133,7 +133,35 @@ example (x: String):
   apply hoare_asgn
 
 theorem hoare_asgn_wrong (x : String) : ∃ (a : Imp.AExp),
-  ¬ valid_hoare_triple (fun st => true) (.assign x a) (fun st => ∀ (n : ℕ), (st x = n) ↔ (Imp.AEval st a n)) := by
-  sorry
+  ¬ valid_hoare_triple (fun st => true) (.assign x a) (fun st => Imp.AEval st a (st x)) := by
+  exists (.add (.var x) (.const 1))
+  unfold valid_hoare_triple
+  intros h
+  simp_all
+  let st₁ : Imp.State := fun y => if y = x then 0 else 0
+  let st₂ := Imp.set st₁ x (st₁ x + 1)
+  specialize h st₁ st₂
+  have ha : (st₁ ⊢ Imp.Command.assign x ((Imp.AExp.var x).add (Imp.AExp.const 1)) ⇓ st₂) := by
+    {
+      apply Imp.CEval.assign
+      apply Imp.AEval.add
+      apply Imp.AEval.var
+      apply Imp.AEval.const
+    }
+  apply h at ha
+  simp_all
+  have h₁ : st₂ x = st₁ x := by
+    {
+      sorry
+    }
+  have contra : st₂ x = (st₁ x) + 1 := by
+    {
+      sorry
+    }
+  rw[h₁] at contra
+  let n : ℕ := st₁ x
+  have hn : n = st₁ x := by rfl
+  rw[← hn] at contra
+  simp_all
 
 end Hoare1
