@@ -164,4 +164,49 @@ theorem hoare_asgn_wrong (x : String) : ∃ (a : Imp.AExp),
   rw[← hn] at contra
   simp_all
 
+theorem hoare_consequence_pre : ∀ (p p' q : Assertion) (c : Imp.Command),
+  valid_hoare_triple p' c q → (p ->> p') → valid_hoare_triple p c q := by
+  intros p p' q c hh hi
+  unfold valid_hoare_triple
+  unfold valid_hoare_triple at hh
+  unfold assert_implies at hi
+  intros st₁ st₂ hs hp
+  apply hi at hp
+  apply hh at hp
+  exact hp
+  exact hs
+
+theorem hoare_consequence_post : ∀ (p q q' : Assertion) (c : Imp.Command),
+  valid_hoare_triple p c q' → (q' ->> q) → valid_hoare_triple p c q := by
+  intros p q q' c hh hi
+  unfold valid_hoare_triple
+  unfold valid_hoare_triple at hh
+  unfold assert_implies at hi
+  intros st₁ st₂ hs hp
+  apply hh at hp
+  apply hi at hp
+  exact hp
+  exact hs
+
+example (x : String):
+  valid_hoare_triple (fun st => st x < 4) (.assign x (.add (.var x) (.const 1))) (fun st => st x < 5) := by
+  eapply hoare_consequence_pre
+  apply hoare_asgn
+  unfold assert_implies
+  intros st hs
+  unfold assertion_sub
+  intros n ha
+  cases ha
+  case a.add n₁ n₂ ha₁ ha₂ =>
+  cases ha₂
+  case const =>
+  cases ha₁
+  case var =>
+  simp only [Imp.set]
+  simp_all
+  rw [Imp.get]
+  linarith
+
+
+
 end Hoare1
