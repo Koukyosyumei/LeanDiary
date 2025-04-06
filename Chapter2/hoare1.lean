@@ -207,6 +207,31 @@ example (x : String):
   rw [Imp.get]
   linarith
 
+theorem hoare_consequence : ∀ (p p' q q' : Assertion) (c : Imp.Command),
+  valid_hoare_triple p' c q' → (p ->> p') → (q' ->> q) → valid_hoare_triple p c q := by
+  intros p p' q q' c h₁ hp hq
+  apply hoare_consequence_post
+  apply hoare_consequence_pre
+  apply h₁
+  apply hp
+  apply hq
 
+example : ∀ (p p' q : Assertion) (c : Imp.Command),
+  valid_hoare_triple p' c q → (p ->> p') → valid_hoare_triple p c q := by
+  apply hoare_consequence_pre
+
+example (x: String): ∀ (a : Imp.AExp) (n : ℕ),
+  valid_hoare_triple (fun st => Imp.AEval st a n) (.seq (Imp.Command.assign x a) (.skip)) (fun st => st x = n) := by
+  intros a n
+  apply hoare_seq
+  apply hoare_skip
+  eapply hoare_consequence_pre
+  apply hoare_asgn
+  unfold assertion_sub
+  unfold assert_implies
+  intros st hf n₁ ha
+  unfold Imp.set
+  simp_all
+  sorry
 
 end Hoare1
