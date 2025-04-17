@@ -234,4 +234,55 @@ example (x: String): ∀ (a : Imp.AExp) (n : ℕ),
   simp_all
   sorry
 
+def swap_program (x y z: String): Imp.Command := .seq (.seq (.assign z (.var x)) (.assign x (.var y))) (.assign y (.var z))
+
+theorem swap_exercise (x y z : String) (h₁: x ≠ z) (h₂: y ≠ z) (h₃: x ≠ y):
+  valid_hoare_triple (fun st => st x ≤ st y) (swap_program x y z) (fun st => st y ≤ st x) := by
+  unfold swap_program
+  apply hoare_seq
+  apply hoare_asgn
+  apply hoare_seq
+  apply hoare_asgn
+  unfold assertion_sub
+  intros st₁ st₂ hs₁ hs₂ n₁ hs₃ n₂ hs₄
+  have hb₁ : st₁ x = (st₂[x ↦ n₁][y ↦ n₂]) y := by
+  {
+    unfold Imp.set
+    simp_all
+    cases hs₁
+    case assign n₅ hs₅ =>
+    cases hs₅
+    case var =>
+    cases hs₃
+    case var =>
+    cases hs₄
+    case var =>
+    unfold Imp.get
+    unfold Imp.set
+    simp_all
+    by_cases h : z = x
+    . rw[h] at h₁
+      contradiction
+    . simp_all
+  }
+  rw[← hb₁]
+  have hb₂ : st₁ y = (st₂[x ↦ n₁][y ↦ n₂]) x := by
+  {
+    unfold Imp.set
+    simp_all
+    cases hs₁
+    case assign n₅ hs₅ =>
+    cases hs₅
+    case var =>
+    cases hs₃
+    case var =>
+    cases hs₄
+    case var =>
+    unfold Imp.get
+    unfold Imp.set
+    simp_all
+  }
+  rw[← hb₂]
+  exact hs₂
+
 end Hoare1
