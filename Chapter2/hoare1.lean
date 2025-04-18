@@ -285,4 +285,59 @@ theorem swap_exercise (x y z : String) (h₁: x ≠ z) (h₂: y ≠ z) (h₃: x 
   rw[← hb₂]
   exact hs₂
 
+def bassertion (b : Imp.BExp): Assertion := fun st => (Imp.BEval st b true)
+
+lemma bexp_eval_false : ∀ (b : Imp.BExp) (st: Imp.State),
+  (Imp.BEval st b false) → ¬ ((bassertion b) st) := by
+  intros b st hs₁ hs₂
+  unfold bassertion at hs₂
+  induction b with
+  | btrue =>
+    -- Case: b = BExp.btrue
+    -- By BEval.btrue, btrue evaluates to true, contradicting hs₁ : false
+    cases hs₁
+  | bfalse =>
+    -- Case: b = BExp.bfalse
+    -- By BEval.bfalse, bfalse evaluates to false, contradicting hs₂ : true
+    cases hs₂
+  | eq a₁ a₂ => sorry
+  | le a₁ a₂ => sorry
+  | not b ih => sorry
+  | and b₁ b₂ b₁_ih b₂_ih => sorry
+
+theorem hoare_if : ∀ (p q: Assertion) (b : Imp.BExp) (c₁ c₂ : Imp.Command),
+  valid_hoare_triple (fun st => p st ∧ bassertion b st) c₁ q →
+  valid_hoare_triple (fun st => p st ∧ ¬ (bassertion b st)) c₂ q →
+  valid_hoare_triple p (.if_ b c₁ c₂) q := by
+  intros p q b c₁ c₂ htrue hfalse st₁ st₂ he hp
+  cases he
+  case if_true h₁ h₂ =>
+    unfold valid_hoare_triple at htrue
+    apply htrue at h₂
+    have hb : bassertion b st₁ := by {
+      unfold bassertion
+      exact h₁
+    }
+    have ha: p st₁ ∧ bassertion b st₁ := by {
+      apply And.intro
+      exact hp
+      exact hb
+    }
+    apply h₂ at ha
+    exact ha
+  case if_false h₁ h₂ =>
+    unfold valid_hoare_triple at hfalse
+    apply hfalse at h₂
+    have hb : ¬ bassertion b st₁ := by {
+      apply bexp_eval_false
+      exact h₁
+    }
+    have ha: p st₁ ∧ ¬ bassertion b st₁ := by {
+      apply And.intro
+      exact hp
+      exact hb
+    }
+    apply h₂ at ha
+    exact ha
+
 end Hoare1
