@@ -1,6 +1,7 @@
 import Mathlib.Data.Nat.Basic
 import Mathlib.Tactic
 import Chapter2.Imp
+import Chapter2.Equiv
 
 namespace Hoare1
 
@@ -339,5 +340,49 @@ theorem hoare_if : ∀ (p q: Assertion) (b : Imp.BExp) (c₁ c₂ : Imp.Command)
     }
     apply h₂ at ha
     exact ha
+
+lemma aequiv_eq : ∀ (a₁ a₂: Imp.AExp) (st : Imp.State) (n : ℕ),
+  Imp.BEval st (.eq a₁ a₂) true → (Imp.AEval st a₁ n) → (Imp.AEval st a₂ n) := by
+  intros a₁ a₂ st n h₁
+  --apply And.intro
+  sorry
+
+
+example (x y: String):
+  valid_hoare_triple (fun st => true) (.if_ (.eq (.const 0) (.var x)) (.assign y (.const 2)) (.assign y (.add (.var x) (.const 1)))) (fun st => st x < st y) := by
+  apply hoare_if
+  eapply hoare_consequence_pre
+  apply hoare_asgn
+  unfold assertion_sub bassertion
+  simp_all
+  unfold assert_implies
+  intros st₁ h₁ n₁ h₂
+  cases h₂
+  --case a.a.const =>
+  --apply aequiv_eq at h₁
+  sorry
+  sorry
+
+theorem hoare_while : ∀ (p : Assertion) (b : Imp.BExp) (c : Imp.Command),
+  valid_hoare_triple (fun st => p st ∧ bassertion b st) c p →
+  valid_hoare_triple p (.while b c) (fun st => p st ∧ ¬ bassertion b st) := by
+  intros p b c hhoare st st' heval hp
+  cases heval
+  case while_false hf =>
+    apply And.intro
+    exact hp
+    apply bexp_eval_false
+    exact hf
+  case while_true st'' ha₁ ha₂ ha₃ =>
+    apply And.intro
+    apply Imp.CEval.while_true at ha₁
+    apply ha₁ at ha₂
+    apply ha₂ at ha₃
+    unfold valid_hoare_triple at hhoare
+    apply hhoare at st
+    apply st at st'
+    simp_all
+    sorry
+    sorry
 
 end Hoare1
